@@ -16,22 +16,17 @@ function hashword($string, $salt) {
     return crypt($string, '$1$' . $salt . '$');
 }
 
-// Start output buffering to prevent any accidental output
-ob_start();
+// Set headers
+header('Content-Type: application/json');
+header('Cache-Control: no-cache, must-revalidate');
 
 try {
     // Include database connection
     include(dirname(dirname(__FILE__)) . '/connect.php');
     
     if (!isset($con) || !$con) {
-        // If AJAX request, return error
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            echo "error:Database connection error";
-            exit();
-        } else {
-            header("Location: index1.php?error=db_connection");
-            exit();
-        }
+        echo json_encode(['status' => 'error', 'message' => 'Database connection error']);
+        exit();
     }
     
     // Get POST data
@@ -40,13 +35,8 @@ try {
     
     // Validate inputs
     if (empty($old_user) || empty($oldpass)) {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            echo "error:Missing credentials";
-            exit();
-        } else {
-            header("Location: index1.php?error=missing_credentials");
-            exit();
-        }
+        echo json_encode(['status' => 'error', 'message' => 'Missing credentials']);
+        exit();
     }
     
     // Decode inputs
@@ -54,13 +44,8 @@ try {
     $decoded_pass = base64_decode($oldpass);
     
     if ($decoded_user === false || $decoded_pass === false) {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            echo "error:Invalid encoding";
-            exit();
-        } else {
-            header("Location: index1.php?error=invalid_encoding");
-            exit();
-        }
+        echo json_encode(['status' => 'error', 'message' => 'Invalid encoding']);
+        exit();
     }
     
     // Sanitize inputs
@@ -74,36 +59,21 @@ try {
     $checkExist = mysqli_query($con, "SELECT * FROM users WHERE email='$my_user'");
     
     if (!$checkExist) {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            echo "error:Database error";
-            exit();
-        } else {
-            header("Location: index1.php?error=db_error");
-            exit();
-        }
+        echo json_encode(['status' => 'error', 'message' => 'Database error']);
+        exit();
     }
     
     if (mysqli_num_rows($checkExist) == 0) {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            echo "error:User not found";
-            exit();
-        } else {
-            header("Location: index1.php?error=user_not_found");
-            exit();
-        }
+        echo json_encode(['status' => 'error', 'message' => 'User not found']);
+        exit();
     }
     
     $user = mysqli_fetch_assoc($checkExist);
     
     // Verify password
     if ($hashed_password != $user['password']) {
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            echo "error:Invalid password";
-            exit();
-        } else {
-            header("Location: index1.php?error=invalid_password");
-            exit();
-        }
+        echo json_encode(['status' => 'error', 'message' => 'Invalid credentials']);
+        exit();
     }
     
     // Check account activation
@@ -121,17 +91,16 @@ try {
         // Update last login
         mysqli_query($con, "UPDATE users SET last_login=NOW() WHERE email='$my_user'");
         
-        // Return success
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $response = ($user['account_type'] ?? 'regular') == 'e_learning' ? "e_learning" : "portal";
-            echo "success:" . $response;
-        } else {
-            // Redirect to dashboard
-            header("Location: mydashboard/dashboard.php");
-        }
+        // Return success with account type
+        $account_type = ($user['account_type'] ?? 'regular') == 'e_learning' ? "e_learning" : "portal";
+        echo json_encode([
+            'status' => 'success', 
+            'account_type' => $account_type,
+            'redirect' => false
+        ]);
         
     } else {
-        // Account not activated
+        // Account not activated - generate/send code and redirect
         
         $current_time = date('Y-m-d H:i:s');
         $token = $user['token'] ?? '';
@@ -153,10 +122,6 @@ try {
         }
         
         // Prepare activation email
-        $codeb = base64_encode($activation_code);
-        $keyb = base64_encode($user['email']);
-        $activation_link = "http://whitebox.go.ke/activate.php?code=$codeb&key=$keyb";
-        
         $subject = "Account Activation Required - WhiteBox";
         $message = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
@@ -176,15 +141,6 @@ try {
                         <p style='font-size: 14px; color: #666;'>8-digit activation code</p>
                     </div>
                     
-                    <div style='text-align: center; margin: 20px 0;'>
-                        <p>Or click the link below:</p>
-                        <a href='$activation_link' 
-                           style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
-                                  border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
-                            Activate My Account
-                        </a>
-                    </div>
-                    
                     <p>This code will expire in 24 hours.</p>
                     
                     <p style='margin-bottom: 0;'>
@@ -195,7 +151,7 @@ try {
             </div>
         ";
         
-        // Send email using your mailer
+        // Send email
         $mail_subject = $subject;
         $mail_message = $message;
         $mail_to = $user['email'];
@@ -207,24 +163,19 @@ try {
         $_SESSION['pending_activation_email'] = $user['email'];
         $_SESSION['activation_code_sent'] = true;
         
-        // Direct redirect to activation page
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            echo "redirect:activate.php";
-        } else {
-            header("Location: activate.php");
-        }
+        // Return redirect response
+        echo json_encode([
+            'status' => 'redirect',
+            'message' => 'Account requires activation',
+            'redirect_url' => 'activate.php'
+        ]);
     }
     
     mysqli_close($con);
     
 } catch (Exception $e) {
-    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-        echo "error:Server error";
-    } else {
-        header("Location: index1.php?error=server_error");
-    }
+    echo json_encode(['status' => 'error', 'message' => 'Server error']);
 }
 
-ob_end_flush();
 exit();
 ?>
