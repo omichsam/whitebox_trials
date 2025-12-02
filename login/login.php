@@ -2,6 +2,9 @@
 session_start();
 include("../connect.php");
 
+// Include the mailer file
+include("../Huduma_WhiteBox/mails/general.php");
+
 // Configuration
 $SALT = "A073955@am";
 
@@ -36,6 +39,26 @@ function setupUserSession($user_data)
 
 function sendActivationEmail($email, $first_name, $last_name, $activation_code)
 {
+    global $con; // Use the existing database connection
+
+    // Get mailer settings from database
+    $informations = mysqli_query($con, "SELECT * FROM settings_mailer WHERE status='active' LIMIT 1");
+    if (!$informations) {
+        error_log("Failed to fetch mailer settings: " . mysqli_error($con));
+        return false;
+    }
+
+    $get = mysqli_fetch_assoc($informations);
+
+    if ($get) {
+        $email_sender = $get['email_sender'];
+        $reply_to_email = $get['reply_to_email'];
+    } else {
+        // Default values
+        $email_sender = "noreply@whitebox.go.ke";
+        $reply_to_email = "support@whitebox.go.ke";
+    }
+
     $codeb = base64_encode($activation_code);
     $keyb = base64_encode($email);
     $subject = "Account Verification - WhiteBox";
@@ -75,6 +98,13 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
                 
                 <hr style='border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;'>
                 
+                <div style='background: #fff8e1; border: 1px solid #ffd54f; padding: 15px; border-radius: 5px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #5d4037; font-size: 14px;'>
+                        <strong>Note:</strong> If the button above doesn't work, copy and paste this link in your browser:<br>
+                        <span style='word-break: break-all; color: #1976d2;'>$activation_link</span>
+                    </p>
+                </div>
+                
                 <p style='margin-bottom: 0;'>
                     Best regards,<br>
                     <strong>The WhiteBox Team</strong>
@@ -82,15 +112,24 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
             </div>
             <div style='background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;'>
                 <p style='margin: 0;'>© " . date('Y') . " Huduma WhiteBox Platform. All rights reserved.</p>
+                <p style='margin: 5px 0 0 0; font-size: 11px; color: #bbb;'>
+                    This is an automated message, please do not reply directly to this email.
+                </p>
             </div>
         </div>
     ";
 
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
-    $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
+    // Set global variables for the mailer
+    global $mail_subject, $mail_message, $mail_to;
 
-    return mail($email, $subject, $message, $headers);
+    $mail_subject = $subject;
+    $mail_message = $message;
+    $mail_to = $email;
+
+    // Include the mailer file which will send the email
+    include("../Huduma_WhiteBox/mails/general.php");
+
+    return true;
 }
 
 // Main execution starts here
@@ -201,32 +240,27 @@ if ($country == "KE") {
             WHERE email = '$my_user'");
 
         if ($update_token) {
-            // Send activation email (in background if possible)
-            if (function_exists('fastcgi_finish_request')) {
-                // For FastCGI servers, send response first
-                echo base64_encode("activation_required");
-                session_write_close();
-                fastcgi_finish_request();
+            // Send activation email using the included mailer
+            $email_sent = sendActivationEmail($email, $first_name, $last_name, $activation_code);
 
-                // Then send email
-                sendActivationEmail($email, $first_name, $last_name, $activation_code);
-                exit();
-            } else {
-                // Regular PHP - try to send email
-                $email_sent = sendActivationEmail($email, $first_name, $last_name, $activation_code);
-
-                if (!$email_sent) {
-                    error_log("Failed to send activation email to: $email");
-                }
-
-                echo base64_encode("activation_required");
+            if (!$email_sent) {
+                error_log("Failed to send activation email to: $email");
+                // Still return activation_required, but log the error
             }
+
+            echo base64_encode("activation_required");
         } else {
             error_log("Failed to update token: " . mysqli_error($con));
             echo base64_encode("token_update_failed");
         }
     } else {
-        // Token still valid
+        // Token still valid - resend the existing activation code
+        $email_sent = sendActivationEmail($email, $first_name, $last_name, $token);
+
+        if (!$email_sent) {
+            error_log("Failed to resend activation email to: $email");
+        }
+
         echo base64_encode("activation_required");
     }
 }
