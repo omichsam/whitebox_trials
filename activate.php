@@ -183,7 +183,7 @@ function handleActivation()
     // Redirect based on result
     if ($result['status'] === 'success') {
         $_SESSION['activation_success'] = $result['message'];
-        header("Location: login.php?activated=true");
+        header("Location: index1.php?activated=true");
     } else {
         $_SESSION['activation_error'] = $result['message'];
         $_SESSION['activation_data'] = ['email' => $email_encoded, 'code' => $code];
@@ -431,7 +431,7 @@ function sendWelcomeEmail($email, $first_name, $last_name)
                 <p>Your WhiteBox account has been successfully activated!</p>
                 
                 <div style='text-align: center; margin: 30px 0;'>
-                    <a href='http://whitebox.go.ke/login.php' 
+                    <a href='http://whitebox.go.ke/index1.php' 
                        style='background: #085c02; color: white; padding: 15px 30px; 
                               text-decoration: none; border-radius: 6px; font-weight: bold;
                               font-size: 16px; display: inline-block;'>
@@ -720,7 +720,7 @@ function showActivationForm()
                     <a href="javascript:void(0)" onclick="resendCode()">
                         <i class="fas fa-redo"></i> Resend Code
                     </a>
-                    <a href="login.php">
+                    <a href="index1.php">
                         <i class="fas fa-sign-in-alt"></i> Back to Login
                     </a>
                 </div>
