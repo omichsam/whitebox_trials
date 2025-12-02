@@ -582,24 +582,21 @@ if (isset($_SESSION["id"])) {
     </script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <script>
         $(document).ready(function () {
             // Hide messages
             $("#error_data").hide();
             $("#success_data").hide();
             $("#warning_data").hide();
-            $("#activationMessage").hide();
 
-            // Login button click 
-
+            // Login button click
             $("#login_btn").click(function () {
                 var busername = btoa($("#username").val().trim());
                 var bpass = btoa($("#password-field").val().trim());
                 var email = $("#username").val().trim();
 
                 // Hide messages
-                $("#error_data, #success_data, #warning_data, #activationMessage").hide();
+                $("#error_data, #success_data, #warning_data").hide();
 
                 // Validate
                 if (!busername || !bpass) {
@@ -616,41 +613,35 @@ if (isset($_SESSION["id"])) {
                 $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
 
                 // Send request
-                $.post("login/login.php", { busername: busername, bpass: bpass }, function (response) {
-                    try {
-                        var ddata = atob(response);
-
-                        switch (ddata.trim()) {
-                            case "portal":
-                            case "e_learning":
-                                handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
-                                break;
-                            case "redirect_to_activation":
-                                // Redirect to activation page
-                                window.location.href = "activate.php";
-                                break;
-                            case "invalid_credentials":
-                                $("#error_data").html("Invalid password. Try again.").show();
-                                resetLoginButton();
-                                break;
-                            case "user_not_found":
-                                $("#error_data").html("No account found. <a href='register.php'>Sign up</a>").show();
-                                resetLoginButton();
-                                break;
-                            default:
-                                $("#error_data").html("Error: " + ddata).show();
-                                resetLoginButton();
+                $.ajax({
+                    url: "login/login.php",
+                    type: "POST",
+                    data: {
+                        busername: busername,
+                        bpass: bpass
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            // Login successful - redirect to dashboard
+                            handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
                         }
-                    } catch (e) {
-                        $("#error_data").html("Server error. Try again.").show();
+                        else if (response.status === 'redirect') {
+                            // Account requires activation - redirect immediately
+                            window.location.href = response.redirect_url;
+                        }
+                        else if (response.status === 'error') {
+                            // Show error message
+                            $("#error_data").html(response.message).show();
+                            resetLoginButton();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $("#error_data").html("Connection error. Please check your internet connection.").show();
                         resetLoginButton();
                     }
-                }).fail(function () {
-                    $("#error_data").html("Connection error. Check internet.").show();
-                    resetLoginButton();
                 });
             });
-
 
             // Helper functions
             function resetLoginButton() {
