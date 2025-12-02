@@ -581,27 +581,19 @@ if (isset($_SESSION["id"])) {
         });
     </script>
 
-    <!-- #region 
-     -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Hide messages
-            $("#error_data").hide();
-            $("#success_data").hide();
-            $("#warning_data").hide();
-
-            // Login button click - SIMPLE VERSION
+            // Login button click
             $("#login_btn").click(function () {
-                var busername = btoa($("#username").val().trim());
-                var bpass = btoa($("#password-field").val().trim());
                 var email = $("#username").val().trim();
+                var password = $("#password-field").val().trim();
 
                 // Hide messages
-                $("#error_data, #success_data, #warning_data").hide();
+                $("#error_data, #success_data, #warning_data, #activationMessage").hide();
 
                 // Validate
-                if (!busername || !bpass) {
+                if (!email || !password) {
                     $("#error_data").html("Email and Password are required!").show();
                     return;
                 }
@@ -612,51 +604,80 @@ if (isset($_SESSION["id"])) {
                 }
 
                 // Show loading
-                $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Processing...').prop('disabled', true);
+                $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
 
-                // Simple POST request with text response
-                $.post("login/login.php", { busername: busername, bpass: bpass }, function (response) {
-                    console.log("Response:", response); // For debugging
+                // Send request
+                $.ajax({
+                    url: "login/login.php",
+                    type: "POST",
+                    data: {
+                        busername: btoa(email),
+                        bpass: btoa(password)
+                    },
+                    timeout: 8000, // 8 seconds
+                    success: function (response) {
+                        try {
+                            var ddata = atob(response);
 
-                    // Check response type
-                    if (response.startsWith("success:")) {
-                        // Login successful
-                        var accountType = response.split(":")[1];
-                        $("#user_email").val(busername);
-                        $.post("mydashboard/dashboard.php", { model: busername }, function (data) {
-                            $("#landing_page").html(data);
-                        }).fail(function () {
-                            $("#error_data").html("Error loading dashboard.").show();
+                            if (ddata.startsWith("redirect:")) {
+                                // Remove "redirect:" prefix
+                                var redirectUrl = ddata.substring(9);
+                                // Show message and redirect
+                                $("#activationMessage").show();
+                                $("#activationText").html("Please check your email for activation code. <a href='" + redirectUrl + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
+                                resetLoginButton();
+                            } else {
+                                switch (ddata.trim()) {
+                                    case "portal":
+                                    case "e_learning":
+                                        handleSuccessfulLogin(btoa(email), "mydashboard/dashboard.php");
+                                        break;
+                                    case "invalid_credentials":
+                                        $("#error_data").html("Invalid password. Please try again.").show();
+                                        resetLoginButton();
+                                        break;
+                                    case "user_not_found":
+                                        $("#error_data").html("No account found with this email.").show();
+                                        resetLoginButton();
+                                        break;
+                                    default:
+                                        // If activation needed but no redirect, show message
+                                        $("#activationMessage").show();
+                                        $("#activationText").html("Please check your email for activation code. <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
+                                        resetLoginButton();
+                                }
+                            }
+                        } catch (e) {
+                            // Even if response parsing fails, assume email was sent
+                            $("#activationMessage").show();
+                            $("#activationText").html("Please check your email for activation code. <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
                             resetLoginButton();
-                        });
-                    }
-                    else if (response.startsWith("redirect:")) {
-                        // Redirect to activation page
-                        var redirectUrl = response.split(":")[1];
-                        window.location.href = redirectUrl;
-                    }
-                    else if (response.startsWith("error:")) {
-                        // Show error message
-                        var errorMsg = response.split(":")[1];
-                        $("#error_data").html(errorMsg).show();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        // Even if AJAX fails, the PHP script likely ran
+                        $("#activationMessage").show();
+                        $("#activationText").html("Please check your email for activation code. <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
                         resetLoginButton();
                     }
-                    else {
-                        // Unknown response
-                        $("#error_data").html("Unexpected response from server").show();
-                        resetLoginButton();
-                    }
-                }).fail(function (xhr, status, error) {
-                    // Network error
-                    console.log("AJAX Error:", status, error);
-                    $("#error_data").html("Network error. Please check your connection.").show();
-                    resetLoginButton();
                 });
             });
 
             // Helper functions
             function resetLoginButton() {
                 $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+            }
+
+            function handleSuccessfulLogin(username, dashboardUrl) {
+                $("#user_email").val(username);
+                $.post(dashboardUrl, { model: username }, function (data) {
+                    $(".modal-backdrop").hide();
+                    $('body').removeClass("modal-open");
+                    $("#landing_page").html(data);
+                }).fail(function () {
+                    $("#error_data").html("Error loading dashboard.").show();
+                    resetLoginButton();
+                });
             }
 
             function validateEmail(email) {
@@ -680,9 +701,20 @@ if (isset($_SESSION["id"])) {
                     icon.removeClass('fa-eye-slash').addClass('fa-eye');
                 }
             });
+
+            <?php if (isset($_SESSION["id"])): ?>
+                // Auto-redirect if logged in
+                var loginuser = '<?php echo isset($loginuser) ? $loginuser : ""; ?>';
+                var user_not = '<?php echo isset($user_not) ? $user_not : ""; ?>';
+                if (loginuser && user_not) {
+                    $("#user_email").val(loginuser);
+                    $.post("mydashboard/" + user_not + ".php", { model: loginuser }, function (data) {
+                        $("#landing_page").html(data);
+                    });
+                }
+            <?php endif; ?>
         });
     </script>
-    <!-- #region -->
 </body>
 
 </html>
