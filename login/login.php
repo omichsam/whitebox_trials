@@ -1,11 +1,10 @@
 <?php
-// login/login.php - Simple Login Processor with Email
+// login/login.php - Improved Login Processor
 session_start();
 
-// Enable error reporting for debugging
+// Enable error reporting for debugging (remove in production)
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
-ini_set('log_errors', 1);
 
 // Configuration
 $SALT = "A073955@am";
@@ -21,17 +20,86 @@ function hashword($string, $salt) {
     return crypt($string, '$1$' . $salt . '$');
 }
 
+// Function to send activation email
+function sendActivationEmail($email, $first_name, $last_name, $activation_code) {
+    $codeb = base64_encode($activation_code);
+    $keyb = base64_encode($email);
+    $activation_link = "http://whitebox.go.ke/activate.php?code=$codeb&key=$keyb";
+    
+    $subject = "Account Activation Required - WhiteBox";
+    
+    $message = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+            <div style='background: #085c02; color: white; padding: 20px; text-align: center;'>
+                <h2 style='margin: 0;'>Account Activation Required</h2>
+            </div>
+            <div style='padding: 25px; background: #f9f9f9;'>
+                <p>Dear <strong>$first_name $last_name</strong>,</p>
+                <p>Your account requires activation. Please use the code below:</p>
+                
+                <div style='background: white; border: 2px solid #085c02; padding: 20px; margin: 20px 0; text-align: center; border-radius: 8px;'>
+                    <div style='font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #333; 
+                             margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 6px;
+                             font-family: monospace;'>
+                        $activation_code
+                    </div>
+                    <p style='font-size: 14px; color: #666;'>
+                        8-digit activation code
+                    </p>
+                </div>
+                
+                <div style='text-align: center; margin: 20px 0;'>
+                    <p>Or click the link below:</p>
+                    <a href='$activation_link' 
+                       style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
+                              border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        Activate My Account
+                    </a>
+                </div>
+                
+                <p>This code will expire in 24 hours.</p>
+                
+                <p style='margin-bottom: 0;'>
+                    Best regards,<br>
+                    <strong>The WhiteBox Team</strong>
+                </p>
+            </div>
+            <div style='background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;'>
+                <p style='margin: 0;'>© " . date('Y') . " Huduma WhiteBox Platform. All rights reserved.</p>
+            </div>
+        </div>
+    ";
+    
+    // Set variables for mailer
+    $GLOBALS['mail_subject'] = $subject;
+    $GLOBALS['mail_message'] = $message;
+    $GLOBALS['mail_to'] = $email;
+    
+    // Include the mailer file
+    include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
+    
+    return true;
+}
+
 // Set headers for AJAX response
 header('Content-Type: text/plain');
 header('Cache-Control: no-cache, must-revalidate');
 
+// Log errors to a file
+$log_file = dirname(__FILE__) . '/login_errors.log';
+
 try {
     // Include database connection
-    include(dirname(dirname(__FILE__)) . '/connect.php');
+    $connect_path = dirname(dirname(__FILE__)) . '/connect.php';
+    
+    if (!file_exists($connect_path)) {
+        throw new Exception("Database connection file not found");
+    }
+    
+    include($connect_path);
     
     if (!isset($con) || !$con) {
-        echo base64_encode("db_connection_error");
-        exit();
+        throw new Exception("Database connection failed");
     }
     
     // Check if POST data exists
@@ -40,8 +108,8 @@ try {
         exit();
     }
     
-    $old_user = $_POST['busername'] ?? '';
-    $oldpass = $_POST['bpass'] ?? '';
+    $old_user = trim($_POST['busername']);
+    $oldpass = trim($_POST['bpass']);
     
     // Check if credentials are provided
     if (empty($old_user) || empty($oldpass)) {
@@ -84,6 +152,7 @@ try {
     $last_name = $user['last_name'] ?? '';
     $country = $user['country'] ?? '';
     $email = $user['email'];
+    $account_type = $user['account_type'] ?? 'regular';
     
     // Verify password
     if ($hashed_password != $stored_password) {
@@ -107,7 +176,9 @@ try {
         $current_time = date('Y-m-d H:i:s');
         mysqli_query($con, "UPDATE users SET last_login='$current_time' WHERE email='$my_user'");
         
-        echo base64_encode("portal");
+        // Determine redirect based on account type
+        $response = ($account_type == 'e_learning') ? "e_learning" : "portal";
+        echo base64_encode($response);
         
     } else {
         // Account not activated - handle activation
@@ -118,10 +189,8 @@ try {
         $current_time = date('Y-m-d H:i:s');
         
         // Check if we need new activation code
-        $needs_new_code = false;
-        
         if (empty($token) || $token_type != 'activation' || $token_expires_at < $current_time) {
-            $needs_new_code = true;
+            // Generate new activation code
             $activation_code = generateCode(8);
             $token_expires_at = date('Y-m-d H:i:s', strtotime('+24 hours'));
             
@@ -141,65 +210,9 @@ try {
             $activation_code = $token;
         }
         
-        // Send activation email using the mailer
-        $codeb = base64_encode($activation_code);
-        $keyb = base64_encode($email);
-        $activation_link = "http://whitebox.go.ke/activate.php?code=$codeb&key=$keyb";
+        // Send activation email
+        sendActivationEmail($email, $first_name, $last_name, $activation_code);
         
-        $subject = "Account Activation Required - WhiteBox";
-        
-        $message = "
-            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                <div style='background: #085c02; color: white; padding: 20px; text-align: center;'>
-                    <h2 style='margin: 0;'>Account Activation Required</h2>
-                </div>
-                <div style='padding: 25px; background: #f9f9f9;'>
-                    <p>Dear <strong>$first_name $last_name</strong>,</p>
-                    <p>Your account requires activation. Please use the code below:</p>
-                    
-                    <div style='background: white; border: 2px solid #085c02; padding: 20px; margin: 20px 0; text-align: center; border-radius: 8px;'>
-                        <div style='font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #333; 
-                                 margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 6px;
-                                 font-family: monospace;'>
-                            $activation_code
-                        </div>
-                        <p style='font-size: 14px; color: #666;'>
-                            8-digit activation code
-                        </p>
-                    </div>
-                    
-                    <div style='text-align: center; margin: 20px 0;'>
-                        <p>Or click the link below:</p>
-                        <a href='$activation_link' 
-                           style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
-                                  border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
-                            Activate My Account
-                        </a>
-                    </div>
-                    
-                    <p>This code will expire in 24 hours.</p>
-                    
-                    <p style='margin-bottom: 0;'>
-                        Best regards,<br>
-                        <strong>The WhiteBox Team</strong>
-                    </p>
-                </div>
-                <div style='background: #333; color: white; padding: 15px; text-align: center; font-size: 12px;'>
-                    <p style='margin: 0;'>© " . date('Y') . " Huduma WhiteBox Platform. All rights reserved.</p>
-                </div>
-            </div>
-        ";
-        
-        // Set variables for mailer
-        $mail_subject = $subject;
-        $mail_message = $message;
-        $mail_to = $email;
-        
-        // Include the mailer file
-        include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
-        
-        // Note: The mailer will send the email and output success/error message
-        // We'll just return activation_required regardless of email success
         echo base64_encode("activation_required");
     }
     
@@ -207,6 +220,8 @@ try {
     mysqli_close($con);
     
 } catch (Exception $e) {
+    // Log error
+    error_log(date('Y-m-d H:i:s') . " - " . $e->getMessage() . "\n", 3, $log_file);
     echo base64_encode("server_error");
 }
 
