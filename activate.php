@@ -1038,7 +1038,7 @@ function showActivationForm()
                         <i class="fas fa-check-circle"></i> <span>Activate Account</span>
                     </button>
 
-                    <?php if ($show_test_button): ?>
+                    <!-- < ?php if ($show_test_button): ?>
                         <div class="debug-section">
                             <h4><i class="fas fa-tools"></i> Diagnostics</h4>
                             <div class="debug-actions">
@@ -1054,7 +1054,7 @@ function showActivationForm()
                             </div>
                             <div class="test-result" id="testResult"></div>
                         </div>
-                    <?php endif; ?>
+                    < ?php endif; ?> -->
                 </form>
 
                 <div class="links">
