@@ -65,8 +65,8 @@ if (isset($_SESSION["id"])) {
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhiteBox - Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>WhiteBox - Login</title>  
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -619,134 +619,110 @@ if (isset($_SESSION["id"])) {
             // Show loading state
             $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
 
-            // Replace the $.post() call in your JavaScript with this:
-            $.ajax({
-                url: "login/login.php",
-                type: "POST",
-                data: {
-                    busername: busername,
-                    bpass: bpass
-                },
-                timeout: 10000, // 10 second timeout
-                beforeSend: function () {
-                    console.log("Sending login request...");
-                },
-                success: function (response, textStatus, jqXHR) {
-                    console.log("Login response received:", response);
-                    console.log("Status:", textStatus);
+            $.post("login/login.php", { busername: busername, bpass: bpass }, function (response) {
+                var ddata = atob(response);
+                console.log("Response:", ddata); // For debugging
 
-                    try {
-                        var ddata = atob(response);
-                        console.log("Decoded response:", ddata);
+                switch (ddata.trim()) {
+                    case "portal":
+                        // Successful login - account activated
+                        handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
+                        break;
 
-                        // Handle responses as before...
-                        switch (ddata.trim()) {
-                            case "portal":
-                                handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
-                                break;
-                            case "e_learning":
-                                handleSuccessfulLogin(busername, "mydashboard/e_learning.php");
-                                break;
-                            case "activation_required":
-                                $("#activationMessage").show();
-                                $("#activationText").html("Your account is not activated yet. Please check your email for activation instructions or <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning);'>click here</a> to resend activation email.");
-                                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
-                                break;
-                            case "invalid_credentials":
-                                $("#error_data").html("Invalid password. Please try again.").show();
-                                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
-                                break;
-                            case "user_not_found":
-                                $("#error_data").html("No account found with this email. Please <a href='register.php' style='color: var(--danger);'>sign up</a> first.").show();
-                                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
-                                break;
-                            default:
-                                console.error("Unexpected response:", ddata);
-                                $("#error_data").html("Server returned an unexpected response: " + ddata).show();
-                                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
-                        }
-                    } catch (e) {
-                        console.error("Error decoding response:", e);
-                        $("#error_data").html("Error processing server response. Please try again.").show();
+                    case "e_learning":
+                        // e-learning login
+                        handleSuccessfulLogin(busername, "mydashboard/e_learning.php");
+                        break;
+
+                    case "activation_required":
+                        // Account exists but not activated
+                        $("#activationMessage").show();
+                        $("#activationText").html("Your account is not activated yet. Please check your email for activation instructions or <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning);'>click here</a> to resend activation email.");
                         $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX Error:", {
-                        status: jqXHR.status,
-                        statusText: jqXHR.statusText,
-                        textStatus: textStatus,
-                        errorThrown: errorThrown,
-                        responseText: jqXHR.responseText
-                    });
+                        break;
 
-                    if (textStatus === "timeout") {
-                        $("#error_data").html("Request timed out. Please try again.").show();
-                    } else if (jqXHR.status === 0) {
-                        $("#error_data").html("Cannot connect to server. Please check your internet connection.").show();
-                    } else if (jqXHR.status === 500) {
-                        $("#error_data").html("Server error (500). Please contact support.").show();
-                    } else {
-                        $("#error_data").html("Error: " + textStatus + " - " + errorThrown).show();
-                    }
+                    case "invalid_credentials":
+                        // Wrong password
+                        $("#error_data").html("Invalid password. Please try again.").show();
+                        $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+                        break;
 
-                    $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
-                },
-                complete: function () {
-                    console.log("Login request completed");
+                    case "user_not_found":
+                        // User doesn't exist
+                        $("#error_data").html("No account found with this email. Please <a href='register.php' style='color: var(--danger);'>sign up</a> first.").show();
+                        $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+                        break;
+
+                    case "missing_credentials":
+                        // Empty fields
+                        $("#error_data").html("Email and password are required!").show();
+                        $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+                        break;
+
+                    default:
+                        // Check if response contains an activation code
+                        if (ddata.length === 12) { // Base64 encoded 8-character code
+                            window.location.href = "activate.php?code=" + encodeURIComponent(response) + "&email=" + encodeURIComponent(email);
+                        } else {
+                            // Unknown response
+                            $("#error_data").html("An unexpected error occurred. Please try again.").show();
+                            $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+                        }
                 }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                
+                // ,,,
+                
+                console.error("Login failed:", textStatus, errorThrown);
+                $("#error_data").html("Error connecting to server. Please check your internet connection and try again.").show();
+                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
             });
-
-            console.error("Login failed:", textStatus, errorThrown);
-            $("#error_data").html("Error connecting to server. Please check your internet connection and try again.").show();
-            $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
         });
-    });
 
-    function handleSuccessfulLogin(username, dashboardUrl) {
-        $("#user_email").val(username);
-        $.post(dashboardUrl, { model: username }, function (data) {
-            $(".modal-backdrop").hide();
-            $('body').removeClass("modal-open");
-            $("#error_data").hide();
-            $("#home_pagedata").hide().html("");
-            $("#landing_page").show().html(data);
-        }).fail(function () {
-            $("#error_data").html("Error loading dashboard. Please try again.").show();
-            $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+        function handleSuccessfulLogin(username, dashboardUrl) {
+            $("#user_email").val(username);
+            $.post(dashboardUrl, { model: username }, function (data) {
+                $(".modal-backdrop").hide();
+                $('body').removeClass("modal-open");
+                $("#error_data").hide();
+                $("#home_pagedata").hide().html("");
+                $("#landing_page").show().html(data);
+            }).fail(function () {
+                $("#error_data").html("Error loading dashboard. Please try again.").show();
+                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+            });
+        }
+
+        function validateEmail(email) {
+            var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Enable Enter key to submit login form
+        $("#username, #password-field").keypress(function (e) {
+            if (e.which == 13) {
+                $("#login_btn").click();
+            }
         });
-    }
 
-    function validateEmail(email) {
-        var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
+        // Password toggle functionality
+        $(".password-toggle").click(function () {
+            var input = $(this).siblings('input');
+            var icon = $(this).find('i');
 
-    // Enable Enter key to submit login form
-    $("#username, #password-field").keypress(function (e) {
-        if (e.which == 13) {
-            $("#login_btn").click();
-        }
-    });
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
 
-    // Password toggle functionality
-    $(".password-toggle").click(function () {
-        var input = $(this).siblings('input');
-        var icon = $(this).find('i');
-
-        if (input.attr('type') === 'password') {
-            input.attr('type', 'text');
-            icon.removeClass('fa-eye').addClass('fa-eye-slash');
-        } else {
-            input.attr('type', 'password');
-            icon.removeClass('fa-eye-slash').addClass('fa-eye');
-        }
-    });
-
-    // Disable right-click context menu
-    $(document).bind("contextmenu", function (e) {
-        return false;
-    });
+        // Disable right-click context menu
+        $(document).bind("contextmenu", function (e) {
+            return false;
+        });
     });
 
     // Check if user is already logged in
