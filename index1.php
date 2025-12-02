@@ -581,38 +581,221 @@ if (isset($_SESSION["id"])) {
         });
     </script>
 
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Hide messages
-            $("#error_data").hide();
-            $("#success_data").hide();
-            $("#warning_data").hide();
+            // Initialize variables
+            let isProcessing = false;
 
-            // Login button click
+            // Hide all messages initially
+            $("#error_data, #success_data, #warning_data").hide();
+            $("#activationMessage").hide();
+
+            // ============ HELPER FUNCTIONS ============
+
+            /**
+             * Show error message
+             * @param {string} message - Error message to display
+             */
+            function showError(message) {
+                $("#error_data").html(message).show();
+                $("#success_data, #warning_data").hide();
+                // Scroll to error if needed
+                $('html, body').animate({
+                    scrollTop: $("#error_data").offset().top - 100
+                }, 300);
+            }
+
+            /**
+             * Show success message
+             * @param {string} message - Success message to display
+             */
+            function showSuccess(message) {
+                $("#success_data").html(message).show();
+                $("#error_data, #warning_data").hide();
+            }
+
+            /**
+             * Show warning message
+             * @param {string} message - Warning message to display
+             */
+            function showWarning(message) {
+                $("#warning_data").html(message).show();
+                $("#error_data, #success_data").hide();
+            }
+
+            /**
+             * Reset login button to original state
+             */
+            function resetLoginButton() {
+                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+                isProcessing = false;
+            }
+
+            /**
+             * Set login button to loading state
+             */
+            function setButtonLoading() {
+                $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Processing...').prop('disabled', true);
+                isProcessing = true;
+            }
+
+            /**
+             * Validate email format
+             * @param {string} email - Email to validate
+             * @returns {boolean} - True if valid
+             */
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            /**
+             * Handle successful login
+             * @param {string} username - Base64 encoded username
+             * @param {string} dashboardUrl - Dashboard URL
+             */
+            function handleSuccessfulLogin(username, dashboardUrl) {
+                $("#user_email").val(username);
+
+                // Show success message
+                showSuccess("Login successful! Redirecting to dashboard...");
+
+                // Load dashboard content
+                $.post(dashboardUrl, { model: username }, function (data) {
+                    // Hide any modals
+                    $(".modal-backdrop").hide();
+                    $('body').removeClass("modal-open");
+
+                    // Replace content with dashboard
+                    $("#landing_page").html(data);
+
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("Dashboard load error:", textStatus, errorThrown);
+                    showError("Error loading dashboard. Please refresh the page.");
+                    resetLoginButton();
+                });
+            }
+
+            /**
+             * Handle activation required - redirect to activation page
+             * @param {string} email - User's email address
+             */
+            function handleActivationRequired(email) {
+                // Show brief message before redirect
+                showWarning("Account requires activation. Redirecting to activation page...");
+
+                // Store email in session via AJAX if needed
+                $.post("store_email_session.php", {
+                    email: email
+                }, function () {
+                    // Redirect after a short delay
+                    setTimeout(function () {
+                        window.location.href = "activate.php";
+                    }, 1500);
+                }).fail(function () {
+                    // Even if session store fails, still redirect
+                    setTimeout(function () {
+                        window.location.href = "activate.php";
+                    }, 1500);
+                });
+            }
+
+            /**
+             * Process login response
+             * @param {string} response - Response from server
+             * @param {string} username - Base64 encoded username
+             * @param {string} email - User's email
+             */
+            function processLoginResponse(response, username, email) {
+                console.log("Server response:", response);
+
+                // Trim and clean response
+                response = response.trim();
+
+                // Check for success responses
+                if (response === "portal" || response === "e_learning") {
+                    handleSuccessfulLogin(username, "mydashboard/dashboard.php");
+                    return true;
+                }
+
+                // Check for activation redirect
+                if (response === "activation_required" ||
+                    response === "redirect_to_activation" ||
+                    response === "activate") {
+                    handleActivationRequired(email);
+                    return true;
+                }
+
+                // Check for specific error messages
+                switch (response) {
+                    case "user_not_found":
+                        showError("Account not found. Please check your email or <a href='register.php'>create an account</a>.");
+                        break;
+                    case "invalid_credentials":
+                    case "invalid_password":
+                        showError("Invalid password. Please try again.");
+                        // Clear password field
+                        $("#password-field").val('').focus();
+                        break;
+                    case "missing_credentials":
+                        showError("Email and password are required.");
+                        break;
+                    case "db_connection_error":
+                    case "db_error":
+                        showError("Database connection error. Please try again later.");
+                        break;
+                    case "server_error":
+                        showError("Server error. Please try again later.");
+                        break;
+                    default:
+                        // If it's an error message we don't recognize
+                        if (response.startsWith("error:")) {
+                            showError(response.substring(6));
+                        } else {
+                            showError("Unexpected response: " + response);
+                        }
+                }
+
+                return false;
+            }
+
+            // ============ EVENT HANDLERS ============
+
+            /**
+             * Handle login button click
+             */
             $("#login_btn").click(function () {
-                var busername = btoa($("#username").val().trim());
-                var bpass = btoa($("#password-field").val().trim());
-                var email = $("#username").val().trim();
+                // Prevent multiple clicks
+                if (isProcessing) return;
 
-                // Hide messages
+                // Get form values
+                const email = $("#username").val().trim();
+                const password = $("#password-field").val().trim();
+
+                // Hide all messages
                 $("#error_data, #success_data, #warning_data").hide();
 
-                // Validate
-                if (!busername || !bpass) {
-                    $("#error_data").html("Email and Password are required!").show();
+                // Validate inputs
+                if (!email || !password) {
+                    showError("Email and Password are required!");
                     return;
                 }
 
                 if (!validateEmail(email)) {
-                    $("#error_data").html("Please enter a valid email address!").show();
+                    showError("Please enter a valid email address!");
                     return;
                 }
 
-                // Show loading
-                $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
+                // Encode credentials for security
+                const busername = btoa(email);
+                const bpass = btoa(password);
 
-                // Send request with error handling
+                // Set button to loading state
+                setButtonLoading();
+
+                // Send login request
                 $.ajax({
                     url: "login/login.php",
                     type: "POST",
@@ -620,118 +803,213 @@ if (isset($_SESSION["id"])) {
                         busername: busername,
                         bpass: bpass
                     },
-                    dataType: 'json',
-                    success: function (response) {
-                        console.log('Response:', response); // For debugging
+                    dataType: "text", // Expect text response
+                    timeout: 30000, // 30 second timeout
 
-                        if (response.status === 'success') {
-                            // Login successful
-                            if (response.redirect === 'e_learning' || response.redirect === 'portal') {
-                                handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
-                            } else {
-                                $("#error_data").html("Invalid response from server").show();
-                                resetLoginButton();
-                            }
-                        }
-                        else if (response.status === 'redirect') {
-                            // Account requires activation - redirect immediately
-                            window.location.href = response.redirect;
-                        }
-                        else if (response.status === 'error') {
-                            // Show error message
-                            $("#error_data").html(response.message).show();
-                            resetLoginButton();
-                        }
-                        else {
-                            // Invalid response format
-                            $("#error_data").html("Invalid response from server").show();
-                            resetLoginButton();
+                    // Success handler
+                    success: function (response, textStatus, jqXHR) {
+                        try {
+                            // Try to decode base64 response
+                            const decodedResponse = atob(response);
+                            processLoginResponse(decodedResponse, busername, email);
+                        } catch (decodeError) {
+                            // If not base64, process as plain text
+                            processLoginResponse(response, busername, email);
                         }
                     },
-                    error: function (xhr, status, error) {
-                        console.log('AJAX Error:', status, error); // For debugging
 
-                        // Check if it's a JSON parse error (which means server responded with non-JSON)
-                        if (xhr.responseText) {
+                    // Error handler
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("AJAX Error:", textStatus, errorThrown);
+
+                        // Check if we got a response (even with error status)
+                        if (jqXHR.responseText) {
                             try {
-                                // Try to decode base64 response (for backward compatibility)
-                                var decoded = atob(xhr.responseText);
-                                console.log('Decoded response:', decoded);
-
-                                // Handle old response format
-                                if (decoded === "redirect_to_activation" || decoded === "activation_required") {
-                                    window.location.href = "activate.php";
+                                const decodedResponse = atob(jqXHR.responseText);
+                                if (decodedResponse === "activation_required" ||
+                                    decodedResponse === "redirect_to_activation") {
+                                    handleActivationRequired(email);
                                     return;
-                                } else if (decoded === "portal" || decoded === "e_learning") {
-                                    handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
-                                    return;
-                                } else {
-                                    $("#error_data").html(decoded).show();
                                 }
                             } catch (e) {
-                                // Not base64, show generic error
-                                $("#error_data").html("Server error. Please try again.").show();
+                                // Not base64, check plain text
+                                if (jqXHR.responseText.includes("activation")) {
+                                    handleActivationRequired(email);
+                                    return;
+                                }
+                            }
+                        }
+
+                        // Network/connection errors
+                        if (textStatus === "timeout") {
+                            showError("Request timeout. Please try again.");
+                        } else if (textStatus === "error") {
+                            if (jqXHR.status === 0) {
+                                showError("Network error. Please check your internet connection.");
+                            } else if (jqXHR.status === 500) {
+                                showError("Server error (500). Please try again later.");
+                            } else {
+                                showError("Error " + jqXHR.status + ": " + errorThrown);
                             }
                         } else {
-                            $("#error_data").html("Connection error. Please check your internet connection.").show();
+                            showError("Connection error: " + textStatus);
                         }
+
                         resetLoginButton();
+                    },
+
+                    // Always execute
+                    complete: function () {
+                        // Button reset happens in individual handlers
                     }
                 });
             });
 
-            // Helper functions
-            function resetLoginButton() {
-                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
-            }
+            // ============ KEYBOARD SUPPORT ============
 
-            function handleSuccessfulLogin(username, dashboardUrl) {
-                $("#user_email").val(username);
-                $.post(dashboardUrl, { model: username }, function (data) {
-                    $(".modal-backdrop").hide();
-                    $('body').removeClass("modal-open");
-                    $("#landing_page").html(data);
-                }).fail(function () {
-                    $("#error_data").html("Error loading dashboard.").show();
-                    resetLoginButton();
-                });
-            }
-
-            function validateEmail(email) {
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-            }
-
-            // Enter key support
+            /**
+             * Handle Enter key in form fields
+             */
             $("#username, #password-field").keypress(function (e) {
-                if (e.which == 13) $("#login_btn").click();
+                if (e.which === 13) { // Enter key
+                    e.preventDefault();
+                    $("#login_btn").click();
+                }
             });
 
-            // Password toggle
+            // ============ PASSWORD VISIBILITY TOGGLE ============
+
+            /**
+             * Toggle password visibility
+             */
             $("#togglePassword").click(function () {
-                var input = $(this).siblings('input');
-                var icon = $(this).find('i');
+                const input = $(this).siblings('input');
+                const icon = $(this).find('i');
+
                 if (input.attr('type') === 'password') {
                     input.attr('type', 'text');
                     icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    $(this).attr('title', 'Hide password');
                 } else {
                     input.attr('type', 'password');
                     icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    $(this).attr('title', 'Show password');
+                }
+
+                // Keep focus on input
+                input.focus();
+            });
+
+            // ============ FORM VALIDATION ON BLUR ============
+
+            /**
+             * Real-time email validation
+             */
+            $("#username").on('blur', function () {
+                const email = $(this).val().trim();
+                if (email && !validateEmail(email)) {
+                    $(this).addClass('error-border');
+                    // Add error styling
+                    $(this).css({
+                        'border-color': 'var(--danger)',
+                        'box-shadow': '0 0 0 3px rgba(169, 22, 22, 0.1)'
+                    });
+                } else {
+                    $(this).removeClass('error-border');
+                    $(this).css({
+                        'border-color': '',
+                        'box-shadow': ''
+                    });
                 }
             });
 
-            <?php if (isset($_SESSION["id"])): ?>
-                // Auto-redirect if logged in
-                var loginuser = '<?php echo isset($loginuser) ? $loginuser : ""; ?>';
-                var user_not = '<?php echo isset($user_not) ? $user_not : ""; ?>';
-                if (loginuser && user_not) {
-                    $("#user_email").val(loginuser);
-                    $.post("mydashboard/" + user_not + ".php", { model: loginuser }, function (data) {
-                        $("#landing_page").html(data);
+            /**
+             * Clear errors when user starts typing
+             */
+            $("#username, #password-field").on('input', function () {
+                if ($(this).hasClass('error-border')) {
+                    $(this).removeClass('error-border');
+                    $(this).css({
+                        'border-color': '',
+                        'box-shadow': ''
                     });
                 }
+                $("#error_data").hide();
+            });
+
+            // ============ AUTO-LOGIN IF SESSION EXISTS ============
+
+            <?php if (isset($_SESSION["id"]) && isset($loginuser) && isset($user_not)): ?>
+                // Auto-login for returning users with valid session
+                $(function () {
+                    const loginuser = '<?php echo addslashes($loginuser); ?>';
+                    const user_not = '<?php echo addslashes($user_not); ?>';
+
+                    if (loginuser && user_not) {
+                        $("#user_email").val(loginuser);
+
+                        // Show loading message
+                        $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Restoring session...').prop('disabled', true);
+                        showSuccess("Restoring your session...");
+
+                        // Load dashboard
+                        $.post("mydashboard/" + user_not + ".php", { model: loginuser }, function (data) {
+                            $("#landing_page").html(data);
+                        }).fail(function () {
+                            showError("Session expired. Please login again.");
+                            resetLoginButton();
+                        });
+                    }
+                });
             <?php endif; ?>
-        });
+
+            // ============ INITIAL FOCUS ============
+
+            // Auto-focus on email field on page load
+            $("#username").focus();
+
+            // ============ ADDITIONAL UTILITIES ============
+
+            // Add error border CSS class
+            const errorStyle = document.createElement('style');
+            errorStyle.textContent = `
+            .error-border {
+                border-color: var(--danger) !important;
+                box-shadow: 0 0 0 3px rgba(169, 22, 22, 0.1) !important;
+                animation: shake 0.5s ease-in-out;
+            }
+            
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+            
+            #login_btn:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
+        `;
+            document.head.appendChild(errorStyle);
+
+            // ============ CLEANUP ON PAGE UNLOAD ============
+
+            // Prevent form submission on page refresh
+            $(window).on('beforeunload', function () {
+                if (isProcessing) {
+                    return "Login is in progress. Are you sure you want to leave?";
+                }
+            });
+
+            // Reset processing flag when page is successfully loaded
+            $(window).on('load', function () {
+                isProcessing = false;
+            });
+
+        }); // End of document ready
     </script>
+
+
     <!-- #region -->
 </body>
 
