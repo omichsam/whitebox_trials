@@ -1,5 +1,5 @@
 <?php
-
+include '../../connect.php';
 $useremail = $_POST['user'];
 $informations = mysqli_query($con, "SELECT * FROM settings_mailer WHERE status='active'") or die(mysqli_error($con));
 $get = mysqli_fetch_assoc($informations);
