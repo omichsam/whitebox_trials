@@ -762,8 +762,8 @@ function showActivationForm() {
                 font-family: 'Courier New', monospace;
                 font-size: 20px;
                 letter-spacing: 3px;
-                text-align: center;
-                text-transform: uppercase;
+                text-align: ccenter;
+                text-transform: uuppercase;
             }
             
             .btn {
@@ -1003,7 +1003,7 @@ function showActivationForm() {
                         </label>
                         <input type="text" id="code" name="code" class="code-input" required 
                                maxlength="8" pattern="[A-Z0-9]{8}" 
-                               placeholder="ENTER 8-CHAR CODE" value="<?php
+                               placeholder="Enter 8-character code" value="<?php
                             if (isset($_SESSION['activation_data']['code'])) {
                                 echo htmlspecialchars($_SESSION['activation_data']['code']);
                             }
@@ -1017,7 +1017,7 @@ function showActivationForm() {
                         <i class="fas fa-check-circle"></i> <span>Activate Account</span>
                     </button>
                     
-                    <?php if ($show_test_button): ?>
+                    <!-- < ?php if ($show_test_button): ?>
                     <div class="debug-section">
                         <h4><i class="fas fa-tools"></i> Diagnostics</h4>
                         <div class="debug-actions">
@@ -1033,7 +1033,7 @@ function showActivationForm() {
                         </div>
                         <div class="test-result" id="testResult"></div>
                     </div>
-                    <?php endif; ?>
+                    < ?php endif; ?> -->
                 </form>
                 
                 <div class="links">

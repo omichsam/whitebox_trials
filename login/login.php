@@ -1,5 +1,5 @@
 <?php
-// login/login.php - Simple Login with Silent Mailer
+// login/login.php - Silent mailer version with redirect
 session_start();
 
 // Configuration
@@ -120,6 +120,7 @@ try {
         // Prepare activation email
         $codeb = base64_encode($activation_code);
         $keyb = base64_encode($user['email']);
+        $activation_link = "http://whitebox.go.ke/activate.php?code=$codeb&key=$keyb";
         
         $subject = "Account Activation Required - WhiteBox";
         $message = "
@@ -140,7 +141,14 @@ try {
                         <p style='font-size: 14px; color: #666;'>8-digit activation code</p>
                     </div>
                     
-                    <p>Enter this code on the activation page or click the activation link in your email.</p>
+                    <div style='text-align: center; margin: 20px 0;'>
+                        <p>Or click the link below:</p>
+                        <a href='$activation_link' 
+                           style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
+                                  border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                            Activate My Account
+                        </a>
+                    </div>
                     
                     <p>This code will expire in 24 hours.</p>
                     
@@ -152,16 +160,23 @@ try {
             </div>
         ";
         
-        // Send email using SILENT mailer
+        // Set variables for mailer
         $mail_subject = $subject;
         $mail_message = $message;
         $mail_to = $user['email'];
         
-        // Include the silent mailer
-        include(dirname(__FILE__) . '/Huduma_WhiteBox/mails/general.php');
+        // Start output buffering
+        ob_start();
         
-        // Return redirect URL for frontend
-        echo base64_encode("redirect:activate.php?code=" . $codeb . "&key=" . $keyb);
+        // Include mailer file - capture ALL output
+        include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
+        
+        // Discard all output from mailer
+        ob_end_clean();
+        
+        // Instead of returning "activation_required", return a redirect URL
+        // This tells frontend to redirect to activation page
+        echo base64_encode("redirect:" . $codeb . ":" . $keyb);
     }
     
     mysqli_close($con);
