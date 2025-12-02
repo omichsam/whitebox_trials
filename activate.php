@@ -18,7 +18,7 @@ function generateCode($length = 8)
     return substr(str_shuffle($chars), 0, $length);
 }
 
-// Send activation email using your custom mail system
+// Send activation email
 function sendActivationEmail($email, $first_name, $last_name, $activation_code)
 {
     $activation_link = "http://whitebox.go.ke/activate.php?action=activate&code=" .
@@ -26,7 +26,6 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
 
     $expiry_time = date('l, F j, Y \a\t g:i A', strtotime('+24 hours'));
 
-    // Create email content
     $subject = "Activate Your WhiteBox Account";
 
     $message = "
@@ -78,91 +77,10 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
         </html>
     ";
 
-    // Try using your custom mail system first
-    if (file_exists("Huduma_WhiteBox/mails/general.php")) {
-        // Set variables that your general.php mail system expects
-        $mail_subject = $subject;
-        $mail_message = $message;
-        $mail_to = $email;
-
-        // Include and execute your mail system
-        ob_start(); // Start output buffering to capture any output
-        include("Huduma_WhiteBox/mails/general.php");
-        $mail_result = ob_get_clean(); // Get any output
-
-        // Check if email was sent successfully
-        // You might need to adjust this based on how your mail system returns success
-        if (strpos($mail_result, 'success') !== false || trim($mail_result) == '') {
-            return true;
-        } else {
-            // Fallback to PHP mail() if custom system fails
-            error_log("Custom mail system failed, falling back to PHP mail()");
-        }
-    }
-
-    // Fallback to standard PHP mail()
     $headers = "MIME-Version: 1.0" . "\r\n";
     $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
     $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
     $headers .= "Reply-To: support@whitebox.go.ke" . "\r\n";
-
-    return mail($email, $subject, $message, $headers);
-}
-
-// Send welcome email using your custom mail system
-function sendWelcomeEmail($email, $first_name, $last_name)
-{
-    $subject = "Welcome to WhiteBox - Account Activated";
-
-    $message = "
-        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-            <div style='background: #085c02; color: white; padding: 25px; text-align: center;'>
-                <h1 style='margin: 0;'>Welcome to WhiteBox!</h1>
-                <p style='margin: 10px 0 0 0; opacity: 0.9;'>Your account is now active</p>
-            </div>
-            <div style='padding: 30px; background: #f9f9f9;'>
-                <p>Dear <strong>$first_name $last_name</strong>,</p>
-                <p>Your WhiteBox account has been successfully activated!</p>
-                
-                <div style='text-align: center; margin: 30px 0;'>
-                    <a href='http://whitebox.go.ke/index1.php' 
-                       style='background: #085c02; color: white; padding: 15px 30px; 
-                              text-decoration: none; border-radius: 6px; font-weight: bold;
-                              font-size: 16px; display: inline-block;'>
-                        Go to Login
-                    </a>
-                </div>
-                
-                <p>Best regards,<br><strong>The WhiteBox Team</strong></p>
-            </div>
-        </div>
-    ";
-
-    // Try using your custom mail system first
-    if (file_exists("Huduma_WhiteBox/mails/general.php")) {
-        // Set variables that your general.php mail system expects
-        $mail_subject = $subject;
-        $mail_message = $message;
-        $mail_to = $email;
-
-        // Include and execute your mail system
-        ob_start(); // Start output buffering to capture any output
-        include("Huduma_WhiteBox/mails/general.php");
-        $mail_result = ob_get_clean(); // Get any output
-
-        // Check if email was sent successfully
-        if (strpos($mail_result, 'success') !== false || trim($mail_result) == '') {
-            return true;
-        } else {
-            // Fallback to PHP mail() if custom system fails
-            error_log("Custom mail system failed for welcome email, falling back to PHP mail()");
-        }
-    }
-
-    // Fallback to standard PHP mail()
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
-    $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
 
     return mail($email, $subject, $message, $headers);
 }
@@ -231,7 +149,7 @@ function handleActivation()
     // Redirect based on result
     if ($result['status'] === 'success') {
         $_SESSION['activation_success'] = $result['message'];
-        header("Location: index1.php?activated=true");
+        header("Location: login.php?activated=true");
     } else {
         $_SESSION['activation_error'] = $result['message'];
         $_SESSION['activation_data'] = ['email' => $email_encoded, 'code' => $code];
@@ -446,6 +364,42 @@ function verifyActivationCode()
     $result = checkAndProcessActivation($email, $code);
     echo json_encode($result);
     exit();
+}
+
+// Function to send welcome email
+function sendWelcomeEmail($email, $first_name, $last_name)
+{
+    $subject = "Welcome to WhiteBox - Account Activated";
+
+    $message = "
+        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+            <div style='background: #085c02; color: white; padding: 25px; text-align: center;'>
+                <h1 style='margin: 0;'>Welcome to WhiteBox!</h1>
+                <p style='margin: 10px 0 0 0; opacity: 0.9;'>Your account is now active</p>
+            </div>
+            <div style='padding: 30px; background: #f9f9f9;'>
+                <p>Dear <strong>$first_name $last_name</strong>,</p>
+                <p>Your WhiteBox account has been successfully activated!</p>
+                
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='http://whitebox.go.ke/login.php' 
+                       style='background: #085c02; color: white; padding: 15px 30px; 
+                              text-decoration: none; border-radius: 6px; font-weight: bold;
+                              font-size: 16px; display: inline-block;'>
+                        Go to Login
+                    </a>
+                </div>
+                
+                <p>Best regards,<br><strong>The WhiteBox Team</strong></p>
+            </div>
+        </div>
+    ";
+
+    $headers = "MIME-Version: 1.0" . "\r\n";
+    $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
+    $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
+
+    mail($email, $subject, $message, $headers);
 }
 
 // Function to show activation form (default view)
@@ -684,7 +638,7 @@ function showActivationForm()
                     <a href="javascript:void(0)" onclick="resendCode()">
                         <i class="fas fa-redo"></i> Resend Code
                     </a>
-                    <a href="index1.php">
+                    <a href="login.php">
                         <i class="fas fa-sign-in-alt"></i> Back to Login
                     </a>
                 </div>
