@@ -582,6 +582,7 @@ if (isset($_SESSION["id"])) {
     </script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         $(document).ready(function () {
             // Hide messages
@@ -590,7 +591,8 @@ if (isset($_SESSION["id"])) {
             $("#warning_data").hide();
             $("#activationMessage").hide();
 
-            // Login button click
+            // Login button click 
+
             $("#login_btn").click(function () {
                 var busername = btoa($("#username").val().trim());
                 var bpass = btoa($("#password-field").val().trim());
@@ -623,10 +625,9 @@ if (isset($_SESSION["id"])) {
                             case "e_learning":
                                 handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
                                 break;
-                            case "activation_required":
-                                $("#activationMessage").show();
-                                $("#activationText").html("Account needs activation. Check your email.");
-                                resetLoginButton();
+                            case "redirect_to_activation":
+                                // Redirect to activation page
+                                window.location.href = "activate.php";
                                 break;
                             case "invalid_credentials":
                                 $("#error_data").html("Invalid password. Try again.").show();
@@ -649,6 +650,7 @@ if (isset($_SESSION["id"])) {
                     resetLoginButton();
                 });
             });
+
 
             // Helper functions
             function resetLoginButton() {

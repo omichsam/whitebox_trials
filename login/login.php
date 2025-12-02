@@ -168,7 +168,12 @@ try {
         // Include mailer file
         include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
         
-        echo base64_encode("activation_required");
+        // Store email in session for redirection
+        $_SESSION['pending_activation_email'] = $user['email'];
+        $_SESSION['activation_code_sent'] = true;
+        
+        // Return redirect response
+        echo base64_encode("redirect_to_activation");
     }
     
     mysqli_close($con);

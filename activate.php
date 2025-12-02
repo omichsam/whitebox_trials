@@ -776,8 +776,8 @@ function showActivationForm()
                 font-family: 'Courier New', monospace;
                 font-size: 20px;
                 letter-spacing: 3px;
-                text-align: ccenter;
-                text-transform: uuppercase;
+                text-align: center;
+                text-transform: uppercase;
             }
 
             .btn {
@@ -1024,7 +1024,7 @@ function showActivationForm()
                             <i class="fas fa-key"></i> Activation Code
                         </label>
                         <input type="text" id="code" name="code" class="code-input" required maxlength="8"
-                            pattern="[A-Z0-9]{8}" placeholder="Enter 8-character code" value="<?php
+                            pattern="[A-Z0-9]{8}" placeholder="ENTER 8-CHAR CODE" value="<?php
                             if (isset($_SESSION['activation_data']['code'])) {
                                 echo htmlspecialchars($_SESSION['activation_data']['code']);
                             }
@@ -1035,27 +1035,26 @@ function showActivationForm()
                     </div>
 
                     <button type="submit" class="btn" id="activateBtn">
-                        <i class="fas fa-check-circle"></i> <span>Activate Account.</span>
+                        <i class="fas fa-check-circle"></i> <span>Activate Account</span>
                     </button>
 
-                    <!-- < ?php if ($show_test_button): ?>
-                    <div class="debug-section">
-                        <h4><i class="fas fa-tools"></i> Diagnostics</h4>
-                        <div class="debug-actions">
-                            <button type="button" class="btn btn-warning btn-small" onclick="testMailSystem()">
-                                <i class="fas fa-paper-plane"></i> Test Mail System
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-small" onclick="checkLogs()">
-                                <i class="fas fa-file-alt"></i> Check Logs
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-small" onclick="clearForm()">
-                                <i class="fas fa-broom"></i> Clear Form
-                            </button>
+                    <?php if ($show_test_button): ?>
+                        <div class="debug-section">
+                            <h4><i class="fas fa-tools"></i> Diagnostics</h4>
+                            <div class="debug-actions">
+                                <button type="button" class="btn btn-warning btn-small" onclick="testMailSystem()">
+                                    <i class="fas fa-paper-plane"></i> Test Mail System
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-small" onclick="checkLogs()">
+                                    <i class="fas fa-file-alt"></i> Check Logs
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-small" onclick="clearForm()">
+                                    <i class="fas fa-broom"></i> Clear Form
+                                </button>
+                            </div>
+                            <div class="test-result" id="testResult"></div>
                         </div>
-                        <div class="test-result" id="testResult"></div>
-                    </div>
-                    < ?php endif; ?> -->
-
+                    <?php endif; ?>
                 </form>
 
                 <div class="links">
