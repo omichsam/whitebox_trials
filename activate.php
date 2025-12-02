@@ -774,10 +774,10 @@ function showActivationForm()
 
             .code-input {
                 font-family: 'Courier New', monospace;
-                font-size: 20px;
+                font-size: 16px;
                 letter-spacing: 3px;
-                text-align: center;
-                text-transform: uppercase;
+                text-align: ccenter;
+                text-transform: uuppercase;
             }
 
             .btn {
@@ -1024,7 +1024,7 @@ function showActivationForm()
                             <i class="fas fa-key"></i> Activation Code
                         </label>
                         <input type="text" id="code" name="code" class="code-input" required maxlength="8"
-                            pattern="[A-Z0-9]{8}" placeholder="ENTER 8-CHAR CODE" value="<?php
+                            pattern="[A-Z0-9]{8}" placeholder="Enter 8-character code" value="<?php
                             if (isset($_SESSION['activation_data']['code'])) {
                                 echo htmlspecialchars($_SESSION['activation_data']['code']);
                             }
