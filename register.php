@@ -701,275 +701,178 @@ if (isset($_SESSION["id"])) {
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Hide all messages initially
-            $("#error_data").hide();
-            $("#success_data").hide();
-            $("#warning_data").hide();
+<script>
+$(document).ready(function () {
+    // Hide all messages initially
+    $("#error_data").hide();
+    $("#success_data").hide();
+    $("#warning_data").hide();
 
-            // Password visibility toggle for both password fields
-            $('#togglePassword').click(function () {
-                togglePasswordVisibility('password', 'togglePassword');
-            });
+    // Password visibility toggle
+    $('#togglePassword').click(function () {
+        togglePasswordVisibility('password', 'togglePassword');
+    });
 
-            $('#toggleConfirmPassword').click(function () {
-                togglePasswordVisibility('confirm_password', 'toggleConfirmPassword');
-            });
+    $('#toggleConfirmPassword').click(function () {
+        togglePasswordVisibility('confirm_password', 'toggleConfirmPassword');
+    });
 
-            // Keyboard support for toggle buttons
-            $('.password-toggle-btn').keypress(function (e) {
-                if (e.which === 13 || e.which === 32) {
-                    $(this).click();
-                    e.preventDefault();
-                }
-            });
+    // Registration button click
+    $('#register_btn').click(function () {
+        registerUser();
+    });
 
-            // Password strength checker
-            $('#password').on('input', function () {
-                checkPasswordStrength($(this).val());
-            });
+    // Enter key to submit form
+    $('#registerForm input').keypress(function (e) {
+        if (e.which == 13) {
+            registerUser();
+        }
+    });
 
-            // Password confirmation checker
-            $('#confirm_password').on('input', function () {
-                checkPasswordMatch();
-            });
+    // Functions
+    function togglePasswordVisibility(inputId, buttonId) {
+        const input = $('#' + inputId);
+        const icon = $('#' + buttonId + ' i');
+        
+        if (input.attr('type') === 'password') {
+            input.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            input.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    }
 
-            // Check password match on password field change too
-            $('#password').on('input', function () {
-                checkPasswordMatch();
-            });
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
 
-            // Registration button click
-            $('#register_btn').click(function () {
-                registerUser();
-            });
+    function validatePhone(phone) {
+        const digits = phone.replace(/\D/g, '');
+        return digits.length >= 10;
+    }
 
-            // Enter key to submit form
-            $('#registerForm input').keypress(function (e) {
-                if (e.which == 13) {
-                    registerUser();
-                }
-            });
+    function registerUser() {
+        // Get form values
+        const firstName = $('#first_name').val().trim();
+        const lastName = $('#last_name').val().trim();
+        const email = $('#email').val().trim();
+        const phone = $('#phone').val().trim();
+        const gender = $('#gender').val();
+        const password = $('#password').val();
+        const confirmPassword = $('#confirm_password').val();
+        const termsAccepted = $('#terms').is(':checked');
 
-            // Functions
-            function togglePasswordVisibility(inputId, buttonId) {
-                const passwordInput = $('#' + inputId);
-                const toggleButton = $('#' + buttonId);
-                const icon = toggleButton.find('i');
+        // Hide previous messages
+        $('#error_data, #success_data, #warning_data').hide().html('');
 
-                if (passwordInput.attr('type') === 'password') {
-                    passwordInput.attr('type', 'text');
-                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
-                    toggleButton.attr('aria-label', 'Hide password');
-                } else {
-                    passwordInput.attr('type', 'password');
-                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
-                    toggleButton.attr('aria-label', 'Show password');
-                }
-            }
+        // Basic validation
+        if (!firstName || !lastName || !email || !phone || !gender || !password || !confirmPassword) {
+            $('#error_data').html('All fields are required.').show();
+            return;
+        }
 
-            function checkPasswordStrength(password) {
-                let strength = 0;
-                const strengthText = $('#strengthText');
-                const strengthFill = $('#strengthFill');
+        if (!validateEmail(email)) {
+            $('#error_data').html('Please enter a valid email address.').show();
+            return;
+        }
 
-                // Reset
-                strengthFill.css({
-                    'width': '0%',
-                    'background': '#e9ecef'
-                });
+        if (!validatePhone(phone)) {
+            $('#error_data').html('Please enter a valid phone number (at least 10 digits).').show();
+            return;
+        }
 
-                if (password.length === 0) {
-                    strengthText.text('Password strength: None');
-                    strengthText.css('color', '#6c757d');
-                    return;
-                }
+        if (password.length < 8) {
+            $('#error_data').html('Password must be at least 8 characters long.').show();
+            return;
+        }
 
-                // Length check
-                if (password.length >= 8) strength += 25;
+        if (password !== confirmPassword) {
+            $('#error_data').html('Passwords do not match.').show();
+            return;
+        }
 
-                // Lowercase check
-                if (/[a-z]/.test(password)) strength += 25;
+        if (!termsAccepted) {
+            $('#error_data').html('You must accept the Terms and Conditions.').show();
+            return;
+        }
 
-                // Uppercase check
-                if (/[A-Z]/.test(password)) strength += 25;
+        // Show loading
+        const $btn = $('#register_btn');
+        $btn.html('<i class="fas fa-spinner fa-spin"></i> Creating Account...').prop('disabled', true);
 
-                // Number check
-                if (/[0-9]/.test(password)) strength += 25;
+        // Prepare data
+        const formData = {
+            first_name: btoa(firstName),
+            last_name: btoa(lastName),
+            email: btoa(email),
+            phone: btoa(phone),
+            gender: btoa(gender),
+            password: btoa(password),
+            confirm_password: btoa(confirmPassword)
+        };
 
-                // Special character check (bonus)
-                if (/[^A-Za-z0-9]/.test(password)) strength = Math.min(strength + 10, 100);
-
-                // Update UI
-                let strengthLevel = 'Weak';
-                let color = '#dc3545'; // Red
-
-                if (strength >= 75) {
-                    strengthLevel = 'Strong';
-                    color = '#28a745'; // Green
-                } else if (strength >= 50) {
-                    strengthLevel = 'Good';
-                    color = '#ffc107'; // Yellow
-                } else if (strength >= 25) {
-                    strengthLevel = 'Fair';
-                    color = '#fd7e14'; // Orange
-                } else {
-                    strengthLevel = 'Weak';
-                    color = '#dc3545'; // Red
-                }
-
-                strengthFill.css({
-                    'width': strength + '%',
-                    'background': color
-                });
-
-                strengthText.text('Password strength: ' + strengthLevel);
-                strengthText.css('color', color);
-            }
-
-            function checkPasswordMatch() {
-                const password = $('#password').val();
-                const confirmPassword = $('#confirm_password').val();
-                const matchDiv = $('#passwordMatch');
-
-                if (confirmPassword.length === 0) {
-                    matchDiv.hide();
-                    return;
-                }
-
-                if (password === confirmPassword) {
-                    matchDiv.text('✓ Passwords match').addClass('match-valid').removeClass('match-invalid').show();
-                } else {
-                    matchDiv.text('✗ Passwords do not match').addClass('match-invalid').removeClass('match-valid').show();
-                }
-            }
-
-            function validateEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
-            }
-
-            function validatePhone(phone) {
-                // Remove all non-digit characters except leading +
-                const cleaned = phone.replace(/[^\d+]/g, '');
-                // Check if it's a valid phone number (at least 10 digits)
-                const digits = cleaned.replace(/[^\d]/g, '');
-                return digits.length >= 10;
-            }
-
-            function registerUser() {
-                // Get form values
-                const firstName = $('#first_name').val().trim();
-                const lastName = $('#last_name').val().trim();
-                const email = $('#email').val().trim();
-                const phone = $('#phone').val().trim();
-                const gender = $('#gender').val();
-                const password = $('#password').val();
-                const confirmPassword = $('#confirm_password').val();
-                const termsAccepted = $('#terms').is(':checked');
-
-                // Hide previous messages
-                $('#error_data').hide().html('');
-                $('#success_data').hide().html('');
-                $('#warning_data').hide().html('');
-
-                // Validate form
-                let errors = [];
-
-                if (!firstName) errors.push('First name is required');
-                if (!lastName) errors.push('Last name is required');
-
-                if (!email) {
-                    errors.push('Email is required');
-                } else if (!validateEmail(email)) {
-                    errors.push('Please enter a valid email address');
-                }
-
-                if (!phone) {
-                    errors.push('Phone number is required');
-                } else if (!validatePhone(phone)) {
-                    errors.push('Please enter a valid phone number (at least 10 digits)');
-                }
-
-                if (!gender) errors.push('Please select your gender');
-
-                if (!password) {
-                    errors.push('Password is required');
-                } else if (password.length < 8) {
-                    errors.push('Password must be at least 8 characters long');
-                }
-
-                if (password !== confirmPassword) {
-                    errors.push('Passwords do not match');
-                }
-
-                if (!termsAccepted) {
-                    errors.push('You must accept the Terms and Conditions');
-                }
-
-                // Show errors if any
-                if (errors.length > 0) {
-                    $('#error_data').html('<ul style="text-align: left; padding-left: 20px;"><li>' + errors.join('</li><li>') + '</li></ul>').show();
-                    return;
-                }
-
-                // Show loading state
-                $('#register_btn').html('<i class="fas fa-spinner fa-spin"></i> Creating Account...').prop('disabled', true);
-
-                // Prepare data for AJAX request
-                const formData = {
-                    first_name: btoa(firstName),
-                    last_name: btoa(lastName),
-                    email: btoa(email),
-                    phone: btoa(phone),
-                    gender: btoa(gender),
-                    password: btoa(password),
-                    confirm_password: btoa(confirmPassword)
-                };
-
-                // Send registration request
-                $.post('login/register.php', formData, function (response) {
-                    console.log('Response:', response); // Debugging
-
-                    try {
-                        const decodedResponse = atob(response);
-
-                        if (decodedResponse === 'success') {
-                            $('#success_data').html('🎉 Account created successfully!<br>Please check your email for activation instructions.').show();
+        // Send request
+        $.ajax({
+            url: 'login/register.php',
+            type: 'POST',
+            data: formData,
+            timeout: 10000,
+            success: function (response) {
+                console.log('Server response:', response);
+                
+                try {
+                    const result = atob(response);
+                    console.log('Decoded result:', result);
+                    
+                    switch (result) {
+                        case 'success':
+                            $('#success_data').html('✓ Account created successfully! Check your email for activation.').show();
                             $('#registerForm')[0].reset();
-                            $('#strengthText').text('Password strength: None');
-                            $('#strengthFill').css('width', '0%');
-                            $('#passwordMatch').hide().text('');
-
-                            // Redirect to login after 5 seconds
-                            setTimeout(function () {
-                                window.location.href = 'index1.php?registered=true';
-                            }, 5000);
-                        } else if (decodedResponse === 'email_exists') {
-                            $('#error_data').html('An account with this email already exists.<br>Please use a different email or <a href="login.php" style="color: var(--danger); font-weight: bold;">login</a>.').show();
-                        } else if (decodedResponse === 'invalid_data') {
-                            $('#error_data').html('Invalid form data. Please check all fields and try again.').show();
-                        } else if (decodedResponse === 'db_error') {
-                            $('#error_data').html('Database error. Please try again later.').show();
-                        } else {
-                            $('#error_data').html('Registration failed. Please try again.').show();
-                        }
-                    } catch (e) {
-                        console.error('Error decoding response:', e);
-                        $('#error_data').html('Server error. Please try again later.').show();
+                            break;
+                        case 'email_exists':
+                            $('#error_data').html('Email already registered. Try logging in.').show();
+                            break;
+                        case 'password_mismatch':
+                            $('#error_data').html('Passwords do not match.').show();
+                            break;
+                        case 'password_short':
+                            $('#error_data').html('Password must be at least 8 characters.').show();
+                            break;
+                        case 'invalid_email':
+                            $('#error_data').html('Invalid email address.').show();
+                            break;
+                        case 'db_error':
+                        case 'db_connection_error':
+                            $('#error_data').html('Database error. Please try again.').show();
+                            break;
+                        default:
+                            if (result.startsWith('missing_field:')) {
+                                $('#error_data').html('Please fill all fields.').show();
+                            } else {
+                                $('#error_data').html('Registration failed. Try again.').show();
+                            }
                     }
-
-                    $('#register_btn').html('<i class="fas fa-user-plus"></i> Create Account').prop('disabled', false);
-
-                }).fail(function (jqXHR, textStatus, errorThrown) {
-                    console.error('AJAX Error:', textStatus, errorThrown);
-                    $('#error_data').html('Error connecting to server. Please check your internet connection and try again.').show();
-                    $('#register_btn').html('<i class="fas fa-user-plus"></i> Create Account').prop('disabled', false);
-                });
+                } catch (e) {
+                    console.error('Decoding error:', e);
+                    $('#error_data').html('Server error. Please try again.').show();
+                }
+                
+                resetButton($btn);
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX error:', status, error);
+                $('#error_data').html('Connection error. Please check your internet.').show();
+                resetButton($btn);
             }
         });
-    </script>
+    }
+
+    function resetButton($btn) {
+        $btn.html('<i class="fas fa-user-plus"></i> Create Account').prop('disabled', false);
+    }
+});
+</script>
 </body>
 
 </html>
