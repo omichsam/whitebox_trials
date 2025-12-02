@@ -1,6 +1,6 @@
 <?php
 session_start();
-<<<<<<< HEAD
+
 include("connect.php");
 
 // Enable error reporting for debugging
@@ -730,7 +730,6 @@ function showActivationForm() {
 }
 
 // Close database connection
-=======
 include("../connect.php");
 
 function activateUserAccount($token, $con)
@@ -805,6 +804,5 @@ if (isset($_POST['activation_code'])) {
   ]));
 }
 
->>>>>>> 7047db72fbde7cd5c346855102e63db2c9558b06
 mysqli_close($con);
 ?>
