@@ -2,9 +2,6 @@
 session_start();
 include("../connect.php");
 
-// Include the mailer file
-include("../Huduma_WhiteBox/mails/general.php");
-
 // Configuration
 $SALT = "A073955@am";
 
@@ -51,12 +48,28 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
     $get = mysqli_fetch_assoc($informations);
 
     if ($get) {
+        $usernemail = $get['email'];
         $email_sender = $get['email_sender'] ?? "noreply@whitebox.go.ke";
         $reply_to_email = $get['reply_to_email'] ?? "support@whitebox.go.ke";
+        $bcc_email = $get['bcc_email'] ?? "";
+        $Password = base64_decode($get['Password']);
+        $hostb = $get['host_mail'];
+        $html_enabled = $get['html_enabled'] ?? "1";
+        $Portm = $get['Port_mail'] ?? "587";
+        $SMTPSecure = $get['SMTPSecure'] ?? "tls";
+        $mail_engine = $get['mail_engine'] ?? "phpmailer";
     } else {
         // Default values
+        $usernemail = "noreply@whitebox.go.ke";
         $email_sender = "noreply@whitebox.go.ke";
         $reply_to_email = "support@whitebox.go.ke";
+        $bcc_email = "";
+        $Password = "";
+        $hostb = "localhost";
+        $html_enabled = "1";
+        $Portm = "587";
+        $SMTPSecure = "tls";
+        $mail_engine = "phpmailer";
     }
 
     $codeb = base64_encode($activation_code);
@@ -119,19 +132,56 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
         </div>
     ";
 
-    // Set global variables for the mailer
-    global $mail_subject, $mail_message, $mail_to;
-
-    $mail_subject = $subject;
-    $mail_message = $message;
-    $mail_to = $email;
-
     try {
-        // Include the mailer file which will send the email
-        include("../Huduma_WhiteBox/mails/general.php");
-        return true;
+        // Include PHPMailer files directly here
+        $root_dir = dirname(dirname(dirname(__FILE__)));
+        $phpmailer_path = $root_dir . '/PHPMailer/';
+
+        if (file_exists($phpmailer_path . 'PHPMailer.php')) {
+            require $phpmailer_path . 'PHPMailer.php';
+            require $phpmailer_path . 'SMTP.php';
+        } else {
+            require 'PHPMailer/PHPMailer.php';
+            require 'PHPMailer/SMTP.php';
+        }
+
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+        // Server settings
+        $mail->isSMTP();
+        $mail->SMTPDebug = 0; // 0 = off, 1 = client messages, 2 = client and server messages
+        $mail->SMTPAuth = true;
+        $mail->Host = $hostb;
+        $mail->Port = $Portm;
+        $mail->SMTPSecure = $SMTPSecure;
+        $mail->Username = $usernemail;
+        $mail->Password = $Password;
+
+        // Sender and recipient
+        $mail->setFrom($email_sender, 'WhiteBox');
+        $mail->addAddress($email);
+
+        if (!empty($reply_to_email)) {
+            $mail->addReplyTo($reply_to_email, 'WhiteBox Support');
+        }
+
+        if (!empty($bcc_email)) {
+            $mail->addBCC($bcc_email);
+        }
+
+        // Content
+        $mail->isHTML((bool) $html_enabled);
+        $mail->Subject = $subject;
+        $mail->Body = $message;
+
+        // Optional plain text version
+        $mail->AltBody = strip_tags($message);
+
+        // Send email
+        return $mail->send();
+
     } catch (Exception $e) {
-        error_log("Email sending failed: " . $e->getMessage());
+        error_log("Mailer Error: " . $e->getMessage());
         return false;
     }
 }
@@ -250,7 +300,7 @@ if ($country == "KE") {
             WHERE email = '$my_user'");
 
         if ($update_token) {
-            // Send activation email using the included mailer
+            // Send activation email using the function
             $email_sent = sendActivationEmail($email, $first_name, $last_name, $activation_code);
 
             if (!$email_sent) {
