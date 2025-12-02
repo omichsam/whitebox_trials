@@ -80,7 +80,7 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
     // Try using your custom mail system first
     $mail_sent = false;
 
-    if (file_exists("../Huduma_WhiteBox/mails/general.php")) {
+    if (file_exists("Huduma_WhiteBox/mails/general.php")) {
         // Create variables that your mail system expects
         $mail_subject = $subject;
         $mail_message = $message;
@@ -88,7 +88,7 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
 
         // Capture any output from the mail script
         ob_start();
-        include("../Huduma_WhiteBox/mails/general.php");
+        include("Huduma_WhiteBox/mails/general.php");
         $mail_output = ob_get_clean();
 
         // Check if email was sent successfully
@@ -447,7 +447,7 @@ function sendWelcomeEmail($email, $first_name, $last_name)
     // Try using your custom mail system first
     $mail_sent = false;
 
-    if (file_exists("../Huduma_WhiteBox/mails/general.php")) {
+    if (file_exists("Huduma_WhiteBox/mails/general.php")) {
         // Create variables that your mail system expects
         $mail_subject = $subject;
         $mail_message = $message;
@@ -455,7 +455,7 @@ function sendWelcomeEmail($email, $first_name, $last_name)
 
         // Capture any output from the mail script
         ob_start();
-        include("../Huduma_WhiteBox/mails/general.php");
+        include("Huduma_WhiteBox/mails/general.php");
         $mail_output = ob_get_clean();
 
         // Check if email was sent successfully
