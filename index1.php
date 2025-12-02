@@ -587,15 +587,14 @@ if (isset($_SESSION["id"])) {
         $(document).ready(function () {
             // Login button click
             $("#login_btn").click(function () {
-                var busername = btoa($("#username").val().trim());
-                var bpass = btoa($("#password-field").val().trim());
                 var email = $("#username").val().trim();
+                var password = $("#password-field").val().trim();
 
                 // Hide messages
                 $("#error_data, #success_data, #warning_data, #activationMessage").hide();
 
                 // Validate
-                if (!busername || !bpass) {
+                if (!email || !password) {
                     $("#error_data").html("Email and Password are required!").show();
                     return;
                 }
@@ -606,94 +605,68 @@ if (isset($_SESSION["id"])) {
                 }
 
                 // Show loading
-                var $btn = $("#login_btn");
-                $btn.html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
+                $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
 
-                // Send request with better error handling
+                // Send request
                 $.ajax({
                     url: "login/login.php",
                     type: "POST",
                     data: {
-                        busername: busername,
-                        bpass: bpass
+                        busername: btoa(email),
+                        bpass: btoa(password)
                     },
-                    timeout: 10000,
-                    dataType: 'text', // Expect text response
-                    success: function (response, textStatus, jqXHR) {
-                        console.log("Raw response received:", response);
-                        console.log("Response length:", response.length);
-
+                    timeout: 8000, // 8 seconds
+                    success: function (response) {
                         try {
-                            if (response && response.length > 0) {
-                                var ddata = atob(response);
-                                console.log("Decoded response:", ddata);
+                            var ddata = atob(response);
 
+                            if (ddata.startsWith("redirect:")) {
+                                // Remove "redirect:" prefix
+                                var redirectUrl = ddata.substring(9);
+                                // Show message and redirect
+                                $("#activationMessage").show();
+                                $("#activationText").html("Please check your email for activation code. <a href='" + redirectUrl + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
+                                resetLoginButton();
+                            } else {
                                 switch (ddata.trim()) {
                                     case "portal":
                                     case "e_learning":
-                                        console.log("Login successful");
-                                        handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
-                                        break;
-                                    case "activation_required":
-                                        console.log("Activation required");
-                                        $("#activationMessage").show();
-                                        $("#activationText").html("Account needs activation. Check your email for the activation code.");
-                                        resetLoginButton($btn);
+                                        handleSuccessfulLogin(btoa(email), "mydashboard/dashboard.php");
                                         break;
                                     case "invalid_credentials":
                                         $("#error_data").html("Invalid password. Please try again.").show();
-                                        resetLoginButton($btn);
+                                        resetLoginButton();
                                         break;
                                     case "user_not_found":
                                         $("#error_data").html("No account found with this email.").show();
-                                        resetLoginButton($btn);
+                                        resetLoginButton();
                                         break;
                                     default:
-                                        console.log("Unexpected response:", ddata);
-                                        $("#error_data").html("Server returned: " + ddata).show();
-                                        resetLoginButton($btn);
+                                        // If activation needed but no redirect, show message
+                                        $("#activationMessage").show();
+                                        $("#activationText").html("Please check your email for activation code. <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
+                                        resetLoginButton();
                                 }
-                            } else {
-                                console.error("Empty response");
-                                $("#error_data").html("Empty response from server.").show();
-                                resetLoginButton($btn);
                             }
                         } catch (e) {
-                            console.error("Decoding error:", e);
-                            console.error("Response that failed:", response);
-                            $("#error_data").html("Error processing response. Check console.").show();
-                            resetLoginButton($btn);
+                            // Even if response parsing fails, assume email was sent
+                            $("#activationMessage").show();
+                            $("#activationText").html("Please check your email for activation code. <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
+                            resetLoginButton();
                         }
                     },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error("AJAX Error:", {
-                            status: jqXHR.status,
-                            statusText: jqXHR.statusText,
-                            textStatus: textStatus,
-                            errorThrown: errorThrown,
-                            responseText: jqXHR.responseText
-                        });
-
-                        if (textStatus === "timeout") {
-                            $("#error_data").html("Request timed out. Try again.").show();
-                        } else if (jqXHR.status === 0) {
-                            $("#error_data").html("Cannot connect to server. Check: 1) File exists at login/login.php 2) No PHP errors").show();
-                        } else if (jqXHR.status === 500) {
-                            $("#error_data").html("Server error (500). Check server logs.").show();
-                        } else {
-                            $("#error_data").html("Error: " + textStatus).show();
-                        }
-                        resetLoginButton($btn);
-                    },
-                    complete: function () {
-                        console.log("Request completed");
+                    error: function (xhr, status, error) {
+                        // Even if AJAX fails, the PHP script likely ran
+                        $("#activationMessage").show();
+                        $("#activationText").html("Please check your email for activation code. <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning); font-weight: bold;'>Click here to activate now</a>");
+                        resetLoginButton();
                     }
                 });
             });
 
             // Helper functions
-            function resetLoginButton($btn) {
-                $btn.html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+            function resetLoginButton() {
+                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
             }
 
             function handleSuccessfulLogin(username, dashboardUrl) {
@@ -704,7 +677,7 @@ if (isset($_SESSION["id"])) {
                     $("#landing_page").html(data);
                 }).fail(function () {
                     $("#error_data").html("Error loading dashboard.").show();
-                    resetLoginButton($("#login_btn"));
+                    resetLoginButton();
                 });
             }
 

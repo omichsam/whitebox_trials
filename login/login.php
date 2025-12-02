@@ -1,9 +1,6 @@
 <?php
-// login/login.php - Fixed to return clean response
+// login/login.php - Simple Login with Silent Mailer
 session_start();
-
-// Disable any output that might interfere with AJAX
-ob_start();
 
 // Configuration
 $SALT = "A073955@am";
@@ -18,9 +15,6 @@ function generateCode($length = 8) {
 function hashword($string, $salt) {
     return crypt($string, '$1$' . $salt . '$');
 }
-
-// Clear any previous output
-ob_clean();
 
 // Set headers for AJAX response
 header('Content-Type: text/plain');
@@ -126,7 +120,6 @@ try {
         // Prepare activation email
         $codeb = base64_encode($activation_code);
         $keyb = base64_encode($user['email']);
-        $activation_link = "http://whitebox.go.ke/activate.php?code=$codeb&key=$keyb";
         
         $subject = "Account Activation Required - WhiteBox";
         $message = "
@@ -147,14 +140,7 @@ try {
                         <p style='font-size: 14px; color: #666;'>8-digit activation code</p>
                     </div>
                     
-                    <div style='text-align: center; margin: 20px 0;'>
-                        <p>Or click the link below:</p>
-                        <a href='$activation_link' 
-                           style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
-                                  border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
-                            Activate My Account
-                        </a>
-                    </div>
+                    <p>Enter this code on the activation page or click the activation link in your email.</p>
                     
                     <p>This code will expire in 24 hours.</p>
                     
@@ -166,21 +152,16 @@ try {
             </div>
         ";
         
-        // IMPORTANT: Capture output from mailer to prevent it from interfering
-        ob_start();
-        
-        // Set variables for mailer
+        // Send email using SILENT mailer
         $mail_subject = $subject;
         $mail_message = $message;
         $mail_to = $user['email'];
         
-        // Include mailer file - capture its output
-        include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
+        // Include the silent mailer
+        include(dirname(__FILE__) . '/Huduma_WhiteBox/mails/general.php');
         
-        // Discard any output from mailer
-        ob_end_clean();
-        
-        echo base64_encode("activation_required");
+        // Return redirect URL for frontend
+        echo base64_encode("redirect:activate.php?code=" . $codeb . "&key=" . $keyb);
     }
     
     mysqli_close($con);
