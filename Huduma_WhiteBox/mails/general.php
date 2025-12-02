@@ -1,5 +1,5 @@
 <?php
-// login/silent_mailer.php - Silent version for AJAX requests
+// Huduma_WhiteBox/mails/general.php - FIXED VERSION
 
 // Get the root directory path
 $root_dir = dirname(dirname(dirname(__FILE__)));
@@ -9,15 +9,11 @@ include $root_dir . '/connect.php';
 
 // Check if connection exists
 if (!isset($con) || !$con) {
-   return false; // Silent failure
+   die("Database connection failed");
 }
 
 // Get mailer settings from database
-$informations = mysqli_query($con, "SELECT * FROM settings_mailer WHERE status='active' LIMIT 1");
-if (!$informations) {
-   return false;
-}
-
+$informations = mysqli_query($con, "SELECT * FROM settings_mailer WHERE status='active' LIMIT 1") or die(mysqli_error($con));
 $get = mysqli_fetch_assoc($informations);
 
 if ($get) {
@@ -58,7 +54,7 @@ if (file_exists($phpmailer_path . 'PHPMailer.php')) {
 
 // Check if variables are set by calling script
 if (!isset($mail_subject) || !isset($mail_message) || !isset($mail_to)) {
-   return false;
+   die("Error: Required email variables not set. Need: \$mail_subject, \$mail_message, \$mail_to");
 }
 
 try {
@@ -66,7 +62,7 @@ try {
 
    // Server settings
    $mail->isSMTP();
-   $mail->SMTPDebug = 0;
+   $mail->SMTPDebug = 0; // 0 = off, 1 = client messages, 2 = client and server messages
    $mail->SMTPAuth = true;
    $mail->Host = $hostb;
    $mail->Port = $Portm;
@@ -90,26 +86,19 @@ try {
    $mail->isHTML((bool) $html_enabled);
    $mail->Subject = $mail_subject;
    $mail->Body = $mail_message;
+
+   // Optional plain text version
    $mail->AltBody = strip_tags($mail_message);
 
-   // Send email silently
-   $result = $mail->send();
-   
-   // Log to file instead of outputting
-   $log_file = dirname(__FILE__) . '/email_log.txt';
-   if ($result) {
-       file_put_contents($log_file, date('Y-m-d H:i:s') . " - Email sent to: $mail_to\n", FILE_APPEND);
+   // Send email
+   if ($mail->send()) {
+      // echo "Email sent successfully to " . htmlspecialchars($mail_to);
    } else {
-       file_put_contents($log_file, date('Y-m-d H:i:s') . " - Email failed to: $mail_to - Error: " . $mail->ErrorInfo . "\n", FILE_APPEND);
+      echo "Error sending email: " . $mail->ErrorInfo;
    }
-   
-   return $result;
 
 } catch (Exception $e) {
-   // Log error silently
-   $log_file = dirname(__FILE__) . '/email_log.txt';
-   file_put_contents($log_file, date('Y-m-d H:i:s') . " - Exception: " . $e->getMessage() . "\n", FILE_APPEND);
-   return false;
+   echo "Mailer Error: " . $e->getMessage();
 }
 
 // Close database connection
