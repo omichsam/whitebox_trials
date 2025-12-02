@@ -1,6 +1,9 @@
 <?php
-// login/login.php - Silent mailer version with redirect
+// login/login.php - Fixed to return clean response
 session_start();
+
+// Disable any output that might interfere with AJAX
+ob_start();
 
 // Configuration
 $SALT = "A073955@am";
@@ -17,6 +20,9 @@ function hashword($string, $salt)
 {
     return crypt($string, '$1$' . $salt . '$');
 }
+
+// Clear any previous output
+ob_clean();
 
 // Set headers for AJAX response
 header('Content-Type: text/plain');
@@ -162,23 +168,21 @@ try {
             </div>
         ";
 
+        // IMPORTANT: Capture output from mailer to prevent it from interfering
+        ob_start();
+
         // Set variables for mailer
         $mail_subject = $subject;
         $mail_message = $message;
         $mail_to = $user['email'];
 
-        // Start output buffering
-        ob_start();
-
-        // Include mailer file - capture ALL output
+        // Include mailer file - capture its output
         include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
 
-        // Discard all output from mailer
+        // Discard any output from mailer
         ob_end_clean();
 
-        // Instead of returning "activation_required", return a redirect URL
-        // This tells frontend to redirect to activation page
-        echo base64_encode("redirect:" . $codeb . ":" . $keyb);
+        echo base64_encode("activation_required");
     }
 
     mysqli_close($con);
