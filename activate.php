@@ -18,7 +18,7 @@ function generateCode($length = 8)
     return substr(str_shuffle($chars), 0, $length);
 }
 
-// Send activation email
+// Send activation email using your custom mail system
 function sendActivationEmail($email, $first_name, $last_name, $activation_code)
 {
     $activation_link = "http://whitebox.go.ke/activate.php?action=activate&code=" .
@@ -77,12 +77,46 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
         </html>
     ";
 
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
-    $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
-    $headers .= "Reply-To: support@whitebox.go.ke" . "\r\n";
+    // Try using your custom mail system first
+    $mail_sent = false;
 
-    return mail($email, $subject, $message, $headers);
+    if (file_exists("../Huduma_WhiteBox/mails/general.php")) {
+        // Create variables that your mail system expects
+        $mail_subject = $subject;
+        $mail_message = $message;
+        $mail_to = $email;
+
+        // Capture any output from the mail script
+        ob_start();
+        include("../Huduma_WhiteBox/mails/general.php");
+        $mail_output = ob_get_clean();
+
+        // Check if email was sent successfully
+        // Your mail system might output something like "success" or nothing at all
+        if (empty($mail_output) || stripos($mail_output, 'success') !== false) {
+            error_log("Custom mail system sent activation email to: $email");
+            $mail_sent = true;
+        } else {
+            error_log("Custom mail system output: " . $mail_output);
+        }
+    }
+
+    // If custom mail system failed, fall back to PHP mail()
+    if (!$mail_sent) {
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
+        $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
+        $headers .= "Reply-To: support@whitebox.go.ke" . "\r\n";
+
+        if (mail($email, $subject, $message, $headers)) {
+            error_log("PHP mail() sent activation email to: $email");
+            $mail_sent = true;
+        } else {
+            error_log("Both mail methods failed for: $email");
+        }
+    }
+
+    return $mail_sent;
 }
 
 // Handle different actions
@@ -172,6 +206,7 @@ function checkAndProcessActivation($email, $code)
     $result = mysqli_query($con, $check_query);
 
     if (!$result) {
+        error_log("Database query error: " . mysqli_error($con));
         return ['status' => 'error', 'message' => 'Database error. Please try again.'];
     }
 
@@ -196,6 +231,7 @@ function checkAndProcessActivation($email, $code)
 
             return ['status' => 'success', 'message' => 'Account activated successfully! You can now login.'];
         } else {
+            error_log("Update query failed: " . mysqli_error($con));
             return ['status' => 'error', 'message' => 'Activation failed. Please try again.'];
         }
     }
@@ -252,6 +288,12 @@ function checkActivationStatus()
     $query = "SELECT country, token, token_expires_at FROM users WHERE email='$email'";
     $result = mysqli_query($con, $query);
 
+    if (!$result) {
+        error_log("Check status query failed: " . mysqli_error($con));
+        echo json_encode(['status' => 'error', 'message' => 'Database error']);
+        exit();
+    }
+
     if (mysqli_num_rows($result) > 0) {
         $user = mysqli_fetch_assoc($result);
 
@@ -298,6 +340,12 @@ function resendActivationCode()
     // Check if user exists
     $checkUser = mysqli_query($con, "SELECT * FROM users WHERE email='$email'");
 
+    if (!$checkUser) {
+        error_log("Check user query failed: " . mysqli_error($con));
+        echo json_encode(['status' => 'error', 'message' => 'Database error']);
+        exit();
+    }
+
     if (mysqli_num_rows($checkUser) === 0) {
         echo json_encode(['status' => 'error', 'message' => 'Account not found']);
         exit();
@@ -328,17 +376,18 @@ function resendActivationCode()
                  WHERE email = '$email'");
 
     if ($update) {
-        // Send activation email
+        // Send activation email using the updated function
         if (sendActivationEmail($email, $first_name, $last_name, $activation_code)) {
             echo json_encode([
                 'status' => 'success',
-                'message' => 'New activation code sent!',
+                'message' => 'New activation code sent! Please check your email.',
                 'code' => $activation_code
             ]);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to send email']);
+            echo json_encode(['status' => 'error', 'message' => 'Failed to send email. Please try again later.']);
         }
     } else {
+        error_log("Update token failed: " . mysqli_error($con));
         echo json_encode(['status' => 'error', 'message' => 'Failed to generate new code']);
     }
     exit();
@@ -395,11 +444,44 @@ function sendWelcomeEmail($email, $first_name, $last_name)
         </div>
     ";
 
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
-    $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
+    // Try using your custom mail system first
+    $mail_sent = false;
 
-    mail($email, $subject, $message, $headers);
+    if (file_exists("../Huduma_WhiteBox/mails/general.php")) {
+        // Create variables that your mail system expects
+        $mail_subject = $subject;
+        $mail_message = $message;
+        $mail_to = $email;
+
+        // Capture any output from the mail script
+        ob_start();
+        include("../Huduma_WhiteBox/mails/general.php");
+        $mail_output = ob_get_clean();
+
+        // Check if email was sent successfully
+        if (empty($mail_output) || stripos($mail_output, 'success') !== false) {
+            error_log("Custom mail system sent welcome email to: $email");
+            $mail_sent = true;
+        } else {
+            error_log("Custom mail system output for welcome email: " . $mail_output);
+        }
+    }
+
+    // If custom mail system failed, fall back to PHP mail()
+    if (!$mail_sent) {
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
+        $headers .= "From: WhiteBox <noreply@whitebox.go.ke>" . "\r\n";
+
+        if (mail($email, $subject, $message, $headers)) {
+            error_log("PHP mail() sent welcome email to: $email");
+            $mail_sent = true;
+        } else {
+            error_log("Both mail methods failed for welcome email to: $email");
+        }
+    }
+
+    return $mail_sent;
 }
 
 // Function to show activation form (default view)
@@ -690,30 +772,34 @@ function showActivationForm()
                 $('#statusInfo').html('<i class="fas fa-spinner fa-spin"></i> Checking status...').show();
 
                 $.post('activate.php?action=check', { email: btoa(email) }, function (response) {
-                    const data = JSON.parse(response);
-                    let message = '';
+                    try {
+                        const data = JSON.parse(response);
+                        let message = '';
 
-                    switch (data.status) {
-                        case 'activated':
-                            message = '<i class="fas fa-check-circle" style="color: #28a745;"></i> Account is already activated';
-                            break;
-                        case 'pending':
-                            message = `<i class="fas fa-clock" style="color: #ffc107;"></i> Activation pending (${data.hours_left} hours left)`;
-                            break;
-                        case 'expired':
-                            message = '<i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i> Activation code expired';
-                            break;
-                        case 'no_token':
-                            message = '<i class="fas fa-times-circle" style="color: #dc3545;"></i> No activation code found';
-                            break;
-                        case 'not_found':
-                            message = '<i class="fas fa-user-times" style="color: #dc3545;"></i> Account not found';
-                            break;
-                        default:
-                            message = '<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> ' + data.message;
+                        switch (data.status) {
+                            case 'activated':
+                                message = '<i class="fas fa-check-circle" style="color: #28a745;"></i> Account is already activated';
+                                break;
+                            case 'pending':
+                                message = `<i class="fas fa-clock" style="color: #ffc107;"></i> Activation pending (${data.hours_left} hours left)`;
+                                break;
+                            case 'expired':
+                                message = '<i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i> Activation code expired';
+                                break;
+                            case 'no_token':
+                                message = '<i class="fas fa-times-circle" style="color: #dc3545;"></i> No activation code found';
+                                break;
+                            case 'not_found':
+                                message = '<i class="fas fa-user-times" style="color: #dc3545;"></i> Account not found';
+                                break;
+                            default:
+                                message = '<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> ' + data.message;
+                        }
+
+                        $('#statusInfo').html(message);
+                    } catch (e) {
+                        $('#statusInfo').html('<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> Invalid response from server');
                     }
-
-                    $('#statusInfo').html(message);
                 }).fail(function () {
                     $('#statusInfo').html('<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> Error checking status');
                 });
@@ -734,12 +820,16 @@ function showActivationForm()
                 $('#statusInfo').html('<i class="fas fa-spinner fa-spin"></i> Sending new code...').show();
 
                 $.post('activate.php?action=resend', { email: btoa(email) }, function (response) {
-                    const data = JSON.parse(response);
+                    try {
+                        const data = JSON.parse(response);
 
-                    if (data.status === 'success') {
-                        $('#statusInfo').html(`<i class="fas fa-check-circle" style="color: #28a745;"></i> New code sent!`);
-                    } else {
-                        $('#statusInfo').html(`<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> ${data.message}`);
+                        if (data.status === 'success') {
+                            $('#statusInfo').html(`<i class="fas fa-check-circle" style="color: #28a745;"></i> New code sent! Please check your email.`);
+                        } else {
+                            $('#statusInfo').html(`<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> ${data.message}`);
+                        }
+                    } catch (e) {
+                        $('#statusInfo').html('<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> Invalid response from server');
                     }
                 }).fail(function () {
                     $('#statusInfo').html('<i class="fas fa-exclamation-circle" style="color: #dc3545;"></i> Error sending code');
