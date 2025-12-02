@@ -21,6 +21,8 @@ function generateCode($length = 8)
 // Send activation email using your custom mail system
 function sendActivationEmail($email, $first_name, $last_name, $activation_code)
 {
+    global $con; // Make database connection available
+
     $activation_link = "http://whitebox.go.ke/activate.php?action=activate&code=" .
         urlencode($activation_code) . "&email=" . urlencode(base64_encode($email));
 
@@ -79,29 +81,38 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
 
     // Try using your custom mail system first
     $mail_sent = false;
+    $mail_file = "Huduma_WhiteBox/mails/general.php";
 
-    if (file_exists("Huduma_WhiteBox/mails/general.php")) {
+    if (file_exists($mail_file)) {
         // Create variables that your mail system expects
         $mail_subject = $subject;
         $mail_message = $message;
         $mail_to = $email;
 
+        // Make database connection available to included file
+        $GLOBALS['con'] = $con;
+
         // Capture any output from the mail script
         ob_start();
-        include("Huduma_WhiteBox/mails/general.php");
+        include($mail_file);
         $mail_output = ob_get_clean();
 
         // Check if email was sent successfully
-        // Your mail system might output something like "success" or nothing at all
-        if (empty($mail_output) || stripos($mail_output, 'success') !== false) {
+        if (empty($mail_output) || stripos($mail_output, 'Email sent successfully') !== false || stripos($mail_output, 'success') !== false) {
             error_log("Custom mail system sent activation email to: $email");
             $mail_sent = true;
         } else {
             error_log("Custom mail system output: " . $mail_output);
+            // If there's output but it's not an error, still count as success
+            if (!empty($mail_output) && stripos($mail_output, 'Error') === false && stripos($mail_output, 'failed') === false) {
+                $mail_sent = true;
+            }
         }
+    } else {
+        error_log("Mail file not found: $mail_file");
     }
 
-    // If custom mail system failed, fall back to PHP mail()
+    // If custom mail system failed or doesn't exist, fall back to PHP mail()
     if (!$mail_sent) {
         $headers = "MIME-Version: 1.0" . "\r\n";
         $headers .= "Content-type: text/html; charset=UTF-8" . "\r\n";
@@ -214,6 +225,7 @@ function checkAndProcessActivation($email, $code)
         $user = mysqli_fetch_assoc($result);
         $first_name = $user['first_name'];
         $last_name = $user['last_name'];
+        $user_id = $user['id'];
 
         // Activation successful - update user
         $update_query = "UPDATE users SET 
@@ -223,7 +235,7 @@ function checkAndProcessActivation($email, $code)
                          country = 'KE',
                          user_state = 'active',
                          updated_at = NOW()
-                         WHERE email='$email'";
+                         WHERE email='$email' AND id='$user_id'";
 
         if (mysqli_query($con, $update_query)) {
             // Send welcome email
@@ -418,6 +430,8 @@ function verifyActivationCode()
 // Function to send welcome email
 function sendWelcomeEmail($email, $first_name, $last_name)
 {
+    global $con; // Make database connection available
+
     $subject = "Welcome to WhiteBox - Account Activated";
 
     $message = "
@@ -446,24 +460,32 @@ function sendWelcomeEmail($email, $first_name, $last_name)
 
     // Try using your custom mail system first
     $mail_sent = false;
+    $mail_file = "Huduma_WhiteBox/mails/general.php";
 
-    if (file_exists("Huduma_WhiteBox/mails/general.php")) {
+    if (file_exists($mail_file)) {
         // Create variables that your mail system expects
         $mail_subject = $subject;
         $mail_message = $message;
         $mail_to = $email;
 
+        // Make database connection available to included file
+        $GLOBALS['con'] = $con;
+
         // Capture any output from the mail script
         ob_start();
-        include("Huduma_WhiteBox/mails/general.php");
+        include($mail_file);
         $mail_output = ob_get_clean();
 
         // Check if email was sent successfully
-        if (empty($mail_output) || stripos($mail_output, 'success') !== false) {
+        if (empty($mail_output) || stripos($mail_output, 'Email sent successfully') !== false || stripos($mail_output, 'success') !== false) {
             error_log("Custom mail system sent welcome email to: $email");
             $mail_sent = true;
         } else {
             error_log("Custom mail system output for welcome email: " . $mail_output);
+            // If there's output but it's not an error, still count as success
+            if (!empty($mail_output) && stripos($mail_output, 'Error') === false && stripos($mail_output, 'failed') === false) {
+                $mail_sent = true;
+            }
         }
     }
 
