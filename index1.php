@@ -585,24 +585,22 @@ if (isset($_SESSION["id"])) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Hide all messages initially
+            // Hide messages
             $("#error_data").hide();
             $("#success_data").hide();
             $("#warning_data").hide();
             $("#activationMessage").hide();
 
-            // Login functionality
+            // Login button click
             $("#login_btn").click(function () {
                 var busername = btoa($("#username").val().trim());
                 var bpass = btoa($("#password-field").val().trim());
                 var email = $("#username").val().trim();
 
-                // Hide all messages
-                $("#error_data").hide();
-                $("#success_data").hide();
-                $("#warning_data").hide();
-                $("#activationMessage").hide();
+                // Hide messages
+                $("#error_data, #success_data, #warning_data, #activationMessage").hide();
 
+                // Validate
                 if (!busername || !bpass) {
                     $("#error_data").html("Email and Password are required!").show();
                     return;
@@ -613,192 +611,97 @@ if (isset($_SESSION["id"])) {
                     return;
                 }
 
-                // Show loading state
-                var $btn = $("#login_btn");
-                $btn.html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
+                // Show loading
+                $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
 
-                console.log("Sending login request...");
+                // Send request
+                $.post("login/login.php", { busername: busername, bpass: bpass }, function (response) {
+                    try {
+                        var ddata = atob(response);
 
-                $.ajax({
-                    url: "login/login.php",
-                    type: "POST",
-                    data: {
-                        busername: busername,
-                        bpass: bpass
-                    },
-                    timeout: 15000,
-                    success: function (response, textStatus, jqXHR) {
-                        console.log("Login response received:", response);
-
-                        try {
-                            if (response && response.length > 0) {
-                                var ddata = atob(response);
-                                console.log("Decoded response:", ddata);
-
-                                switch (ddata.trim()) {
-                                    case "portal":
-                                        console.log("Login successful - redirecting to portal");
-                                        handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
-                                        break;
-                                    case "e_learning":
-                                        console.log("Login successful - redirecting to e-learning");
-                                        handleSuccessfulLogin(busername, "mydashboard/e_learning.php");
-                                        break;
-                                    case "activation_required":
-                                        console.log("Account requires activation");
-                                        showActivationMessage(email);
-                                        resetLoginButton();
-                                        break;
-                                    case "invalid_credentials":
-                                        console.log("Invalid credentials");
-                                        showError("Invalid password. Please try again.");
-                                        resetLoginButton();
-                                        break;
-                                    case "user_not_found":
-                                        console.log("User not found");
-                                        showError("No account found with this email. Please <a href='register.php' style='color: var(--danger);'>sign up</a> first.");
-                                        resetLoginButton();
-                                        break;
-                                    case "missing_credentials":
-                                        console.log("Missing credentials");
-                                        showError("Email and password are required!");
-                                        resetLoginButton();
-                                        break;
-                                    case "activation_update_failed":
-                                        console.log("Activation update failed");
-                                        showError("Failed to generate activation code. Please try again.");
-                                        resetLoginButton();
-                                        break;
-                                    case "db_connection_error":
-                                    case "db_error":
-                                    case "server_error":
-                                        console.log("Server error");
-                                        showError("Server error occurred. Please try again later.");
-                                        resetLoginButton();
-                                        break;
-                                    default:
-                                        console.log("Unexpected response:", ddata);
-                                        showError("An unexpected error occurred. Please try again.");
-                                        resetLoginButton();
-                                }
-                            } else {
-                                console.error("Empty response received");
-                                showError("Empty response from server. Please try again.");
+                        switch (ddata.trim()) {
+                            case "portal":
+                            case "e_learning":
+                                handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
+                                break;
+                            case "activation_required":
+                                $("#activationMessage").show();
+                                $("#activationText").html("Account needs activation. Check your email.");
                                 resetLoginButton();
-                            }
-                        } catch (e) {
-                            console.error("Error decoding response:", e);
-                            showError("Error processing server response. Please try again.");
-                            resetLoginButton();
+                                break;
+                            case "invalid_credentials":
+                                $("#error_data").html("Invalid password. Try again.").show();
+                                resetLoginButton();
+                                break;
+                            case "user_not_found":
+                                $("#error_data").html("No account found. <a href='register.php'>Sign up</a>").show();
+                                resetLoginButton();
+                                break;
+                            default:
+                                $("#error_data").html("Error: " + ddata).show();
+                                resetLoginButton();
                         }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error("AJAX Error:", textStatus, errorThrown);
-
-                        if (textStatus === "timeout") {
-                            showError("Request timed out. Please try again.");
-                        } else if (jqXHR.status === 0) {
-                            showError("Cannot connect to server. Please check your internet connection.");
-                        } else if (jqXHR.status === 404) {
-                            showError("Login endpoint not found (404). Please contact support.");
-                        } else if (jqXHR.status === 500) {
-                            showError("Server error (500). Please contact support.");
-                        } else {
-                            showError("Error: " + textStatus + " - " + errorThrown);
-                        }
-
+                    } catch (e) {
+                        $("#error_data").html("Server error. Try again.").show();
                         resetLoginButton();
                     }
+                }).fail(function () {
+                    $("#error_data").html("Connection error. Check internet.").show();
+                    resetLoginButton();
                 });
             });
 
-            // Helper function to show error message
-            function showError(message) {
-                $("#error_data").html(message).show();
-            }
-
-            // Helper function to show activation message
-            function showActivationMessage(email) {
-                $("#activationMessage").show();
-                $("#activationText").html(
-                    "Your account is not activated yet. Please check your email for activation instructions. " +
-                    "If you didn't receive the email, <a href='activate.php?email=" + encodeURIComponent(email) + "' style='color: var(--warning); font-weight: bold;'>click here to resend</a>."
-                );
-            }
-
-            // Helper function to reset login button
+            // Helper functions
             function resetLoginButton() {
                 $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
             }
 
-            // Maintain your existing handleSuccessfulLogin function
             function handleSuccessfulLogin(username, dashboardUrl) {
                 $("#user_email").val(username);
                 $.post(dashboardUrl, { model: username }, function (data) {
                     $(".modal-backdrop").hide();
                     $('body').removeClass("modal-open");
-                    $("#error_data").hide();
-                    $("#home_pagedata").hide().html("");
-                    $("#landing_page").show().html(data);
+                    $("#landing_page").html(data);
                 }).fail(function () {
-                    showError("Error loading dashboard. Please try again.");
+                    $("#error_data").html("Error loading dashboard.").show();
                     resetLoginButton();
                 });
             }
 
             function validateEmail(email) {
-                var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
             }
 
-            // Enable Enter key to submit login form
+            // Enter key support
             $("#username, #password-field").keypress(function (e) {
-                if (e.which == 13) {
-                    $("#login_btn").click();
-                }
+                if (e.which == 13) $("#login_btn").click();
             });
 
-            // Password toggle functionality
+            // Password toggle
             $("#togglePassword").click(function () {
                 var input = $(this).siblings('input');
                 var icon = $(this).find('i');
-
                 if (input.attr('type') === 'password') {
                     input.attr('type', 'text');
                     icon.removeClass('fa-eye').addClass('fa-eye-slash');
-                    $(this).attr('title', 'Hide password');
                 } else {
                     input.attr('type', 'password');
                     icon.removeClass('fa-eye-slash').addClass('fa-eye');
-                    $(this).attr('title', 'Show password');
                 }
             });
 
-            // Disable right-click context menu
-            $(document).bind("contextmenu", function (e) {
-                return false;
-            });
-        });
-
-        // Check if user is already logged in
-        <?php if (isset($_SESSION["id"])): ?>
-            $(document).ready(function () {
+            <?php if (isset($_SESSION["id"])): ?>
+                // Auto-redirect if logged in
                 var loginuser = '<?php echo isset($loginuser) ? $loginuser : ""; ?>';
                 var user_not = '<?php echo isset($user_not) ? $user_not : ""; ?>';
-
                 if (loginuser && user_not) {
                     $("#user_email").val(loginuser);
                     $.post("mydashboard/" + user_not + ".php", { model: loginuser }, function (data) {
-                        $(".modal-backdrop").hide();
-                        $('body').removeClass("modal-open");
-                        $("#error_data").hide();
-                        $("#home_pagedata").hide().html("");
-                        $("#home_pagedata").html("");
-                        $("#landing_page").show().html(data);
+                        $("#landing_page").html(data);
                     });
                 }
-            });
-        <?php endif; ?>
+            <?php endif; ?>
+        });
     </script>
 
 </body>
