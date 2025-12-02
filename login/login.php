@@ -1,85 +1,93 @@
 <?php
-// login/login.php - Minimal Login Processor
+// login/login.php - Fixed to return clean response
 session_start();
+
+// Disable any output that might interfere with AJAX
+ob_start();
 
 // Configuration
 $SALT = "A073955@am";
 
 // Function to generate activation code
-function generateCode($length = 8) {
+function generateCode($length = 8)
+{
     $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
     return substr(str_shuffle($chars), 0, $length);
 }
 
 // Function to hash password
-function hashword($string, $salt) {
+function hashword($string, $salt)
+{
     return crypt($string, '$1$' . $salt . '$');
 }
 
-// Set headers
-header('Content-Type: application/json');
+// Clear any previous output
+ob_clean();
+
+// Set headers for AJAX response
+header('Content-Type: text/plain');
 header('Cache-Control: no-cache, must-revalidate');
 
 try {
     // Include database connection
     include(dirname(dirname(__FILE__)) . '/connect.php');
-    
+
     if (!isset($con) || !$con) {
-        echo json_encode(['status' => 'error', 'message' => 'Database connection error']);
+        echo base64_encode("db_connection_error");
         exit();
     }
-    
+
     // Get POST data
     $old_user = $_POST['busername'] ?? '';
     $oldpass = $_POST['bpass'] ?? '';
-    
+
     // Validate inputs
     if (empty($old_user) || empty($oldpass)) {
-        echo json_encode(['status' => 'error', 'message' => 'Missing credentials']);
+        echo base64_encode("missing_credentials");
         exit();
     }
-    
+
     // Decode inputs
     $decoded_user = base64_decode($old_user);
     $decoded_pass = base64_decode($oldpass);
-    
+
     if ($decoded_user === false || $decoded_pass === false) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid encoding']);
+        echo base64_encode("invalid_encoding");
         exit();
     }
-    
+
     // Sanitize inputs
     $my_user = strtolower(mysqli_real_escape_string($con, $decoded_user));
     $my_pass = mysqli_real_escape_string($con, $decoded_pass);
-    
+
     // Hash the password
     $hashed_password = hashword(base64_encode($my_pass), $SALT);
-    
+
     // Check if user exists
     $checkExist = mysqli_query($con, "SELECT * FROM users WHERE email='$my_user'");
-    
+
     if (!$checkExist) {
-        echo json_encode(['status' => 'error', 'message' => 'Database error']);
+        echo base64_encode("db_error");
         exit();
     }
-    
+
     if (mysqli_num_rows($checkExist) == 0) {
-        echo json_encode(['status' => 'error', 'message' => 'User not found']);
+        echo base64_encode("user_not_found");
         exit();
     }
-    
+
     $user = mysqli_fetch_assoc($checkExist);
-    
+
     // Verify password
     if ($hashed_password != $user['password']) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid credentials']);
+        echo base64_encode("invalid_credentials");
         exit();
     }
-    
+
     // Check account activation
     if ($user['country'] == "KE") {
         // Account activated - login successful
-        
+
         // Set session
         $_SESSION["loggedin"] = true;
         $_SESSION["username"] = $user['email'];
@@ -87,30 +95,26 @@ try {
         $_SESSION["first_name"] = $user['first_name'] ?? '';
         $_SESSION["last_name"] = $user['last_name'] ?? '';
         $_SESSION["user_id"] = $user['id'] ?? '';
-        
+
         // Update last login
         mysqli_query($con, "UPDATE users SET last_login=NOW() WHERE email='$my_user'");
-        
-        // Return success with account type
-        $account_type = ($user['account_type'] ?? 'regular') == 'e_learning' ? "e_learning" : "portal";
-        echo json_encode([
-            'status' => 'success', 
-            'account_type' => $account_type,
-            'redirect' => false
-        ]);
-        
+
+        // Return success
+        $response = ($user['account_type'] ?? 'regular') == 'e_learning' ? "e_learning" : "portal";
+        echo base64_encode($response);
+
     } else {
-        // Account not activated - generate/send code and redirect
-        
+        // Account not activated
+
         $current_time = date('Y-m-d H:i:s');
         $token = $user['token'] ?? '';
         $token_expires_at = $user['token_expires_at'] ?? '';
-        
+
         // Generate new activation code if needed
         if (empty($token) || $token_expires_at < $current_time) {
             $activation_code = generateCode(8);
             $expiry_time = date('Y-m-d H:i:s', strtotime('+24 hours'));
-            
+
             mysqli_query($con, "UPDATE users SET 
                 token = '$activation_code',
                 token_type = 'activation',
@@ -120,8 +124,12 @@ try {
         } else {
             $activation_code = $token;
         }
-        
+
         // Prepare activation email
+        $codeb = base64_encode($activation_code);
+        $keyb = base64_encode($user['email']);
+        $activation_link = "http://whitebox.go.ke/activate.php?code=$codeb&key=$keyb";
+
         $subject = "Account Activation Required - WhiteBox";
         $message = "
             <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
@@ -141,6 +149,15 @@ try {
                         <p style='font-size: 14px; color: #666;'>8-digit activation code</p>
                     </div>
                     
+                    <div style='text-align: center; margin: 20px 0;'>
+                        <p>Or click the link below:</p>
+                        <a href='$activation_link' 
+                           style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
+                                  border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                            Activate My Account
+                        </a>
+                    </div>
+                    
                     <p>This code will expire in 24 hours.</p>
                     
                     <p style='margin-bottom: 0;'>
@@ -150,32 +167,29 @@ try {
                 </div>
             </div>
         ";
-        
-        // Send email
+
+        // IMPORTANT: Capture output from mailer to prevent it from interfering
+        ob_start();
+
+        // Set variables for mailer
         $mail_subject = $subject;
         $mail_message = $message;
         $mail_to = $user['email'];
-        
-        // Include mailer file
-        include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
-        
-        // Store email in session for activation page
-        $_SESSION['pending_activation_email'] = $user['email'];
-        $_SESSION['activation_code_sent'] = true;
-        
-        // Return redirect response
-        echo json_encode([
-            'status' => 'redirect',
-            'message' => 'Account requires activation',
-            'redirect_url' => 'activate.php'
-        ]);
-    }
-    
-    mysqli_close($con);
-    
-} catch (Exception $e) {
-    echo json_encode(['status' => 'error', 'message' => 'Server error']);
-}
 
-exit();
+        // Include mailer file - capture its output
+        include(dirname(dirname(__FILE__)) . '/Huduma_WhiteBox/mails/general.php');
+
+        // Discard any output from mailer
+        ob_end_clean();
+
+        echo base64_encode("activation_required");
+    }
+
+    mysqli_close($con);
+    exit();
+
+} catch (Exception $e) {
+    echo base64_encode("server_error");
+    exit();
+}
 ?>
