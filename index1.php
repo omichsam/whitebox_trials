@@ -585,12 +585,6 @@ if (isset($_SESSION["id"])) {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Hide messages
-            $("#error_data").hide();
-            $("#success_data").hide();
-            $("#warning_data").hide();
-            $("#activationMessage").hide();
-
             // Login button click
             $("#login_btn").click(function () {
                 var busername = btoa($("#username").val().trim());
@@ -612,48 +606,94 @@ if (isset($_SESSION["id"])) {
                 }
 
                 // Show loading
-                $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
+                var $btn = $("#login_btn");
+                $btn.html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
 
-                // Send request
-                $.post("login/login.php", { busername: busername, bpass: bpass }, function (response) {
-                    try {
-                        var ddata = atob(response);
+                // Send request with better error handling
+                $.ajax({
+                    url: "login/login.php",
+                    type: "POST",
+                    data: {
+                        busername: busername,
+                        bpass: bpass
+                    },
+                    timeout: 10000,
+                    dataType: 'text', // Expect text response
+                    success: function (response, textStatus, jqXHR) {
+                        console.log("Raw response received:", response);
+                        console.log("Response length:", response.length);
 
-                        switch (ddata.trim()) {
-                            case "portal":
-                            case "e_learning":
-                                handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
-                                break;
-                            case "activation_required":
-                                $("#activationMessage").show();
-                                $("#activationText").html("Account needs activation. Check your email.");
-                                resetLoginButton();
-                                break;
-                            case "invalid_credentials":
-                                $("#error_data").html("Invalid password. Try again.").show();
-                                resetLoginButton();
-                                break;
-                            case "user_not_found":
-                                $("#error_data").html("No account found. <a href='register.php'>Sign up</a>").show();
-                                resetLoginButton();
-                                break;
-                            default:
-                                $("#error_data").html("Error: " + ddata).show();
-                                resetLoginButton();
+                        try {
+                            if (response && response.length > 0) {
+                                var ddata = atob(response);
+                                console.log("Decoded response:", ddata);
+
+                                switch (ddata.trim()) {
+                                    case "portal":
+                                    case "e_learning":
+                                        console.log("Login successful");
+                                        handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
+                                        break;
+                                    case "activation_required":
+                                        console.log("Activation required");
+                                        $("#activationMessage").show();
+                                        $("#activationText").html("Account needs activation. Check your email for the activation code.");
+                                        resetLoginButton($btn);
+                                        break;
+                                    case "invalid_credentials":
+                                        $("#error_data").html("Invalid password. Please try again.").show();
+                                        resetLoginButton($btn);
+                                        break;
+                                    case "user_not_found":
+                                        $("#error_data").html("No account found with this email.").show();
+                                        resetLoginButton($btn);
+                                        break;
+                                    default:
+                                        console.log("Unexpected response:", ddata);
+                                        $("#error_data").html("Server returned: " + ddata).show();
+                                        resetLoginButton($btn);
+                                }
+                            } else {
+                                console.error("Empty response");
+                                $("#error_data").html("Empty response from server.").show();
+                                resetLoginButton($btn);
+                            }
+                        } catch (e) {
+                            console.error("Decoding error:", e);
+                            console.error("Response that failed:", response);
+                            $("#error_data").html("Error processing response. Check console.").show();
+                            resetLoginButton($btn);
                         }
-                    } catch (e) {
-                        $("#error_data").html("Server error. Try again.").show();
-                        resetLoginButton();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("AJAX Error:", {
+                            status: jqXHR.status,
+                            statusText: jqXHR.statusText,
+                            textStatus: textStatus,
+                            errorThrown: errorThrown,
+                            responseText: jqXHR.responseText
+                        });
+
+                        if (textStatus === "timeout") {
+                            $("#error_data").html("Request timed out. Try again.").show();
+                        } else if (jqXHR.status === 0) {
+                            $("#error_data").html("Cannot connect to server. Check: 1) File exists at login/login.php 2) No PHP errors").show();
+                        } else if (jqXHR.status === 500) {
+                            $("#error_data").html("Server error (500). Check server logs.").show();
+                        } else {
+                            $("#error_data").html("Error: " + textStatus).show();
+                        }
+                        resetLoginButton($btn);
+                    },
+                    complete: function () {
+                        console.log("Request completed");
                     }
-                }).fail(function () {
-                    $("#error_data").html("Connection error. Check internet.").show();
-                    resetLoginButton();
                 });
             });
 
             // Helper functions
-            function resetLoginButton() {
-                $("#login_btn").html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
+            function resetLoginButton($btn) {
+                $btn.html('<i class="fas fa-sign-in-alt"></i> Sign In').prop('disabled', false);
             }
 
             function handleSuccessfulLogin(username, dashboardUrl) {
@@ -664,7 +704,7 @@ if (isset($_SESSION["id"])) {
                     $("#landing_page").html(data);
                 }).fail(function () {
                     $("#error_data").html("Error loading dashboard.").show();
-                    resetLoginButton();
+                    resetLoginButton($("#login_btn"));
                 });
             }
 
