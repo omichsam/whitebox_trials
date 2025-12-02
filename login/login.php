@@ -51,8 +51,8 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
     $get = mysqli_fetch_assoc($informations);
 
     if ($get) {
-        $email_sender = $get['email_sender'];
-        $reply_to_email = $get['reply_to_email'];
+        $email_sender = $get['email_sender'] ?? "noreply@whitebox.go.ke";
+        $reply_to_email = $get['reply_to_email'] ?? "support@whitebox.go.ke";
     } else {
         // Default values
         $email_sender = "noreply@whitebox.go.ke";
@@ -126,10 +126,14 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
     $mail_message = $message;
     $mail_to = $email;
 
-    // Include the mailer file which will send the email
-    include("../Huduma_WhiteBox/mails/general.php");
-
-    return true;
+    try {
+        // Include the mailer file which will send the email
+        include("../Huduma_WhiteBox/mails/general.php");
+        return true;
+    } catch (Exception $e) {
+        error_log("Email sending failed: " . $e->getMessage());
+        return false;
+    }
 }
 
 // Main execution starts here
@@ -191,6 +195,7 @@ $first_name = $user['first_name'];
 $last_name = $user['last_name'];
 $country = $user['country'];
 $email = $user['email'];
+$account_type = $user['account_type'] ?? 'regular';
 
 // Verify password
 if ($hashed_password != $stored_password) {
@@ -213,7 +218,12 @@ if ($country == "KE") {
         error_log("Failed to update last login: " . mysqli_error($con));
     }
 
-    echo base64_encode("portal");
+    // Determine redirect based on account type
+    if ($account_type == 'e_learning') {
+        echo base64_encode("e_learning");
+    } else {
+        echo base64_encode("portal");
+    }
 
 } else {
     // Account not activated
