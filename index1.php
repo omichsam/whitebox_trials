@@ -612,7 +612,7 @@ if (isset($_SESSION["id"])) {
                 // Show loading
                 $("#login_btn").html('<i class="fas fa-spinner fa-spin"></i> Signing In...').prop('disabled', true);
 
-                // Send request
+                // Send request with error handling
                 $.ajax({
                     url: "login/login.php",
                     type: "POST",
@@ -622,22 +622,59 @@ if (isset($_SESSION["id"])) {
                     },
                     dataType: 'json',
                     success: function (response) {
+                        console.log('Response:', response); // For debugging
+
                         if (response.status === 'success') {
-                            // Login successful - redirect to dashboard
-                            handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
+                            // Login successful
+                            if (response.redirect === 'e_learning' || response.redirect === 'portal') {
+                                handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
+                            } else {
+                                $("#error_data").html("Invalid response from server").show();
+                                resetLoginButton();
+                            }
                         }
                         else if (response.status === 'redirect') {
                             // Account requires activation - redirect immediately
-                            window.location.href = response.redirect_url;
+                            window.location.href = response.redirect;
                         }
                         else if (response.status === 'error') {
                             // Show error message
                             $("#error_data").html(response.message).show();
                             resetLoginButton();
                         }
+                        else {
+                            // Invalid response format
+                            $("#error_data").html("Invalid response from server").show();
+                            resetLoginButton();
+                        }
                     },
                     error: function (xhr, status, error) {
-                        $("#error_data").html("Connection error. Please check your internet connection.").show();
+                        console.log('AJAX Error:', status, error); // For debugging
+
+                        // Check if it's a JSON parse error (which means server responded with non-JSON)
+                        if (xhr.responseText) {
+                            try {
+                                // Try to decode base64 response (for backward compatibility)
+                                var decoded = atob(xhr.responseText);
+                                console.log('Decoded response:', decoded);
+
+                                // Handle old response format
+                                if (decoded === "redirect_to_activation" || decoded === "activation_required") {
+                                    window.location.href = "activate.php";
+                                    return;
+                                } else if (decoded === "portal" || decoded === "e_learning") {
+                                    handleSuccessfulLogin(busername, "mydashboard/dashboard.php");
+                                    return;
+                                } else {
+                                    $("#error_data").html(decoded).show();
+                                }
+                            } catch (e) {
+                                // Not base64, show generic error
+                                $("#error_data").html("Server error. Please try again.").show();
+                            }
+                        } else {
+                            $("#error_data").html("Connection error. Please check your internet connection.").show();
+                        }
                         resetLoginButton();
                     }
                 });
