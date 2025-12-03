@@ -690,12 +690,25 @@ function showActivationForm()
 
         <style>
             :root {
-                --primary: #4361ee;
-                --success: #058d27ca;
-                --danger: #a91616ff;
-                --dark: #212529;
-                --gray: #6c757d;
+                --primary: #085c02;
+                --primary-light: #0c7c03;
+                --primary-dark: #054001;
+                --success: #28a745;
+                --success-light: #34ce57;
+                --danger: #dc3545;
+                --danger-light: #e4606d;
                 --warning: #ffc107;
+                --warning-light: #ffce3a;
+                --dark: #212529;
+                --dark-light: #343a40;
+                --gray: #6c757d;
+                --gray-light: #adb5bd;
+                --light: #f8f9fa;
+                --white: #ffffff;
+                --shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+                --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+                --border-radius: 12px;
+                --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             }
 
             * {
@@ -704,144 +717,132 @@ function showActivationForm()
                 padding: 0;
             }
 
+            html {
+                height: 100%;
+            }
+
             body {
                 font-family: 'Poppins', sans-serif;
-                background: linear-gradient(135deg, #085c02ff 0%, #861616a0 100%);
                 min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
+                position: relative;
+                overflow-x: hidden;
+            }
+
+            /* Background Image */
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: url('sources/images/slider/image5.jpg') center/cover no-repeat fixed;
+                z-index: -2;
+                animation: zoomEffect 20s infinite alternate ease-in-out;
+            }
+
+            @keyframes zoomEffect {
+                0% {
+                    transform: scale(1);
+                }
+
+                100% {
+                    transform: scale(1.05);
+                }
+            }
+
+            /* Dark Overlay with Gradient */
+            body::after {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg,
+                        rgba(8, 92, 2, 0.85) 0%,
+                        rgba(8, 92, 2, 0.75) 25%,
+                        rgba(13, 110, 0, 0.8) 50%,
+                        rgba(8, 92, 2, 0.85) 75%,
+                        rgba(5, 64, 1, 0.9) 100%);
+                z-index: -1;
+                backdrop-filter: blur(2px);
+            }
+
+            /* Animated Background Elements */
+            .bg-elements {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: -1;
+                overflow: hidden;
+            }
+
+            .bg-circle {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.05);
+                animation: float 15s infinite linear;
+            }
+
+            .bg-circle:nth-child(1) {
+                width: 300px;
+                height: 300px;
+                top: -150px;
+                right: -150px;
+                animation-delay: 0s;
+            }
+
+            .bg-circle:nth-child(2) {
+                width: 200px;
+                height: 200px;
+                bottom: -100px;
+                left: -100px;
+                animation-delay: -5s;
+            }
+
+            .bg-circle:nth-child(3) {
+                width: 150px;
+                height: 150px;
+                top: 50%;
+                right: 20%;
+                animation-delay: -10s;
+            }
+
+            @keyframes float {
+
+                0%,
+                100% {
+                    transform: translateY(0) rotate(0deg);
+                }
+
+                33% {
+                    transform: translateY(-20px) rotate(120deg);
+                }
+
+                66% {
+                    transform: translateY(20px) rotate(240deg);
+                }
             }
 
             .activation-container {
                 width: 100%;
-                max-width: 500px;
+                max-width: 480px;
                 margin: 0 auto;
+                animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             }
 
-            .activation-card {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-                padding: 30px;
-                width: 100%;
-            }
-
-            .card-header {
-                text-align: center;
-                margin-bottom: 25px;
-            }
-
-            .card-header h2 {
-                color: var(--dark);
-                margin-bottom: 10px;
-                font-size: 24px;
-            }
-
-            .logo {
-                height: 60px;
-                margin-bottom: 15px;
-            }
-
-            .form-group {
-                margin-bottom: 20px;
-            }
-
-            label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 500;
-                color: var(--dark);
-                font-size: 14px;
-            }
-
-            input {
-                width: 100%;
-                padding: 12px 15px;
-                border: 2px solid #ddd;
-                border-radius: 8px;
-                font-size: 16px;
-                font-family: 'Poppins', sans-serif;
-                transition: border-color 0.3s;
-            }
-
-            input:focus {
-                border-color: var(--primary);
-                outline: none;
-                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-            }
-
-            .code-input {
-                font-family: 'Courier New', monospace;
-                font-size: 16px;
-                letter-spacing: 3px;
-                text-align: ccenter;
-                text-transform: uuppercase;
-            }
-
-            .btn {
-                width: 100%;
-                padding: 14px;
-                background: var(--success);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: 600;
-                cursor: pointer;
-                margin-top: 10px;
-                font-family: 'Poppins', sans-serif;
-                transition: all 0.3s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-            }
-
-            .btn:hover:not(:disabled) {
-                opacity: 0.9;
-                transform: translateY(-2px);
-            }
-
-            .btn:disabled {
-                background: var(--gray);
-                cursor: not-allowed;
-                opacity: 0.6;
-            }
-
-            .btn-secondary {
-                background: var(--gray);
-                margin-top: 5px;
-            }
-
-            .btn-warning {
-                background: var(--warning);
-                color: var(--dark);
-                margin-top: 5px;
-            }
-
-            .btn-small {
-                padding: 8px 15px;
-                font-size: 14px;
-                width: auto;
-                margin: 0;
-            }
-
-            .message {
-                padding: 12px 15px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-                font-size: 14px;
-                display: flex;
-                align-items: center;
-                animation: fadeIn 0.3s ease-in;
-            }
-
-            @keyframes fadeIn {
+            @keyframes slideUp {
                 from {
                     opacity: 0;
-                    transform: translateY(-10px);
+                    transform: translateY(30px);
                 }
 
                 to {
@@ -850,112 +851,384 @@ function showActivationForm()
                 }
             }
 
-            .message i {
-                margin-right: 10px;
+            .activation-card {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: var(--border-radius);
+                box-shadow: var(--shadow);
+                padding: 40px;
+                width: 100%;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .activation-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, var(--primary), var(--success-light));
+            }
+
+            .card-header {
+                text-align: center;
+                margin-bottom: 35px;
+                position: relative;
+            }
+
+            .card-header::after {
+                content: '';
+                position: absolute;
+                bottom: -15px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background: linear-gradient(90deg, var(--primary), transparent);
+                border-radius: 3px;
+            }
+
+            .logo-container {
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 80px;
+            }
+
+            .logo {
+                height: 70px;
+                max-width: 100%;
+                object-fit: contain;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+                transition: var(--transition);
+            }
+
+            .logo:hover {
+                transform: scale(1.05);
+            }
+
+            .card-header h2 {
+                color: var(--dark);
+                margin-bottom: 8px;
+                font-size: 28px;
+                font-weight: 700;
+                background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .card-header p {
+                color: var(--gray);
+                font-size: 15px;
+                line-height: 1.5;
+            }
+
+            .form-group {
+                margin-bottom: 25px;
+                position: relative;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 10px;
+                font-weight: 500;
+                color: var(--dark-light);
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            label i {
+                color: var(--primary);
+                width: 20px;
+                text-align: center;
+            }
+
+            .input-container {
+                position: relative;
+            }
+
+            input {
+                width: 100%;
+                padding: 15px 45px 15px 15px;
+                border: 2px solid #e9ecef;
+                border-radius: 8px;
                 font-size: 16px;
+                font-family: 'Poppins', sans-serif;
+                transition: var(--transition);
+                background: var(--white);
+                color: var(--dark);
+            }
+
+            input:focus {
+                border-color: var(--primary);
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(8, 92, 2, 0.1);
+                transform: translateY(-2px);
+            }
+
+            input:hover:not(:focus) {
+                border-color: var(--gray-light);
+            }
+
+            .input-container::after {
+                content: '';
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--gray-light);
+                font-size: 14px;
+            }
+
+            .code-input {
+                font-family: 'Courier New', monospace;
+                font-size: 18px;
+                font-weight: 600;
+                letter-spacing: 8px;
+                text-align: center;
+                text-transform: uppercase;
+                padding-right: 15px;
+            }
+
+            .input-hint {
+                color: var(--gray);
+                font-size: 13px;
+                margin-top: 8px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                opacity: 0.8;
+            }
+
+            .input-hint i {
+                color: var(--primary);
+            }
+
+            .btn {
+                width: 100%;
+                padding: 16px 24px;
+                background: linear-gradient(135deg, var(--primary), var(--primary-light));
+                color: var(--white);
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-top: 10px;
+                font-family: 'Poppins', sans-serif;
+                transition: var(--transition);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: 0.5s;
+            }
+
+            .btn:hover:not(:disabled) {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(8, 92, 2, 0.2);
+            }
+
+            .btn:hover:not(:disabled)::before {
+                left: 100%;
+            }
+
+            .btn:active:not(:disabled) {
+                transform: translateY(-1px);
+            }
+
+            .btn:disabled {
+                background: var(--gray-light);
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+
+            .btn-secondary {
+                background: linear-gradient(135deg, var(--gray), var(--dark-light));
+            }
+
+            .btn-warning {
+                background: linear-gradient(135deg, var(--warning), var(--warning-light));
+                color: var(--dark);
+            }
+
+            .btn-small {
+                padding: 10px 20px;
+                font-size: 14px;
+                width: auto;
+                margin: 0;
+            }
+
+            .message {
+                padding: 16px 20px;
+                border-radius: 8px;
+                margin-bottom: 25px;
+                font-size: 15px;
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                animation: fadeIn 0.4s ease-out;
+                border-left: 4px solid transparent;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-15px) scale(0.95);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+
+            .message i {
+                font-size: 18px;
+                margin-top: 2px;
+                flex-shrink: 0;
             }
 
             .success {
-                background: #d4edda;
+                background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
                 color: #155724;
-                border: 1px solid #c3e6cb;
+                border-left-color: var(--success);
             }
 
             .error {
-                background: #f8d7da;
+                background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
                 color: #721c24;
-                border: 1px solid #f5c6cb;
+                border-left-color: var(--danger);
             }
 
             .info {
-                background: #e7f3ff;
+                background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
                 color: #0c5460;
-                border: 1px solid #b8daff;
+                border-left-color: var(--primary);
+            }
+
+            .status-info {
+                background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 110, 253, 0.05));
+                padding: 16px 20px;
+                border-radius: 8px;
+                margin-bottom: 25px;
+                font-size: 14px;
+                display: none;
+                animation: fadeIn 0.3s ease-in;
+                border-left: 4px solid var(--primary);
             }
 
             .links {
                 text-align: center;
-                margin-top: 25px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
+                margin-top: 35px;
+                padding-top: 25px;
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
                 display: flex;
                 justify-content: center;
                 flex-wrap: wrap;
-                gap: 15px;
+                gap: 20px;
             }
 
             .links a {
                 color: var(--primary);
                 text-decoration: none;
                 font-size: 14px;
-                transition: all 0.3s;
+                font-weight: 500;
+                transition: var(--transition);
                 display: flex;
                 align-items: center;
-                gap: 5px;
+                gap: 8px;
+                padding: 8px 16px;
+                border-radius: 6px;
+                background: rgba(8, 92, 2, 0.05);
             }
 
             .links a:hover {
-                color: var(--dark);
-                text-decoration: underline;
+                color: var(--primary-dark);
+                background: rgba(8, 92, 2, 0.1);
+                transform: translateY(-2px);
+                text-decoration: none;
             }
 
-            .status-info {
-                background: #e7f3ff;
-                padding: 15px;
-                border-radius: 8px;
-                margin-bottom: 20px;
+            .links a i {
                 font-size: 14px;
-                display: none;
-                animation: fadeIn 0.3s ease-in;
             }
 
             .debug-section {
-                margin-top: 25px;
-                padding-top: 20px;
-                border-top: 1px dashed #ddd;
+                margin-top: 30px;
+                padding-top: 25px;
+                border-top: 1px dashed rgba(0, 0, 0, 0.2);
             }
 
             .debug-section h4 {
                 color: var(--dark);
-                margin-bottom: 10px;
+                margin-bottom: 15px;
                 font-size: 14px;
                 text-transform: uppercase;
                 letter-spacing: 1px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
 
             .debug-actions {
                 display: flex;
-                gap: 10px;
+                gap: 12px;
                 flex-wrap: wrap;
             }
 
             .test-result {
-                margin-top: 15px;
-                padding: 15px;
-                background: #f8f9fa;
+                margin-top: 20px;
+                padding: 20px;
+                background: rgba(248, 249, 250, 0.8);
                 border-radius: 8px;
-                font-size: 12px;
+                font-size: 13px;
                 display: none;
-                max-height: 200px;
+                max-height: 250px;
                 overflow-y: auto;
+                border: 1px solid rgba(0, 0, 0, 0.1);
             }
 
-            @media (max-width: 480px) {
+            /* Responsive Design */
+            @media (max-width: 768px) {
                 .activation-card {
-                    padding: 20px;
+                    padding: 30px 25px;
                 }
 
                 .card-header h2 {
-                    font-size: 20px;
+                    font-size: 24px;
+                }
+
+                .logo-container {
+                    height: 70px;
                 }
 
                 .logo {
-                    height: 50px;
+                    height: 60px;
                 }
 
                 .links {
                     flex-direction: column;
-                    gap: 10px;
+                    gap: 12px;
                 }
 
                 .debug-actions {
@@ -965,17 +1238,94 @@ function showActivationForm()
                 .btn-small {
                     width: 100%;
                 }
+
+                .code-input {
+                    letter-spacing: 6px;
+                    font-size: 16px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                body {
+                    padding: 15px;
+                }
+
+                .activation-card {
+                    padding: 25px 20px;
+                }
+
+                .card-header h2 {
+                    font-size: 22px;
+                }
+
+                .logo {
+                    height: 50px;
+                }
+
+                input {
+                    padding: 14px 40px 14px 14px;
+                }
+
+                .code-input {
+                    letter-spacing: 4px;
+                }
+            }
+
+            /* Loading Animation */
+            .loader {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: var(--white);
+                animation: spin 1s ease-in-out infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            /* Pulse animation for important elements */
+            .pulse {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(8, 92, 2, 0.4);
+                }
+
+                70% {
+                    box-shadow: 0 0 0 10px rgba(8, 92, 2, 0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 rgba(8, 92, 2, 0);
+                }
             }
         </style>
     </head>
 
     <body>
+        <!-- Background Elements -->
+        <div class="bg-elements">
+            <div class="bg-circle"></div>
+            <div class="bg-circle"></div>
+            <div class="bg-circle"></div>
+        </div>
+
         <div class="activation-container">
             <div class="activation-card">
                 <div class="card-header">
-                    <img src="Huduma_WhiteBox/Whitebox.png" alt="WhiteBox" class="logo" onerror="this.style.display='none'">
+                    <div class="logo-container">
+                        <img src="Huduma_WhiteBox/Whitebox.png" alt="WhiteBox" class="logo"
+                            onerror="this.style.display='none'">
+                    </div>
                     <h2>Activate Your Account</h2>
-                    <p style="color: var(--gray); font-size: 14px;">Enter your activation code</p>
+                    <p>Enter the activation code sent to your email</p>
                 </div>
 
                 <!-- Messages -->
@@ -1010,35 +1360,39 @@ function showActivationForm()
                         <label for="email_input">
                             <i class="fas fa-envelope"></i> Email Address
                         </label>
-                        <input type="email" id="email_input" name="email_input" required
-                            placeholder="your.email@example.com" value="<?php
-                            if (isset($_SESSION['activation_data']['email'])) {
-                                echo htmlspecialchars(base64_decode($_SESSION['activation_data']['email']));
-                                unset($_SESSION['activation_data']);
-                            }
-                            ?>">
+                        <div class="input-container">
+                            <input type="email" id="email_input" name="email_input" required
+                                placeholder="your.email@example.com" value="<?php
+                                if (isset($_SESSION['activation_data']['email'])) {
+                                    echo htmlspecialchars(base64_decode($_SESSION['activation_data']['email']));
+                                    unset($_SESSION['activation_data']);
+                                }
+                                ?>">
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="code">
                             <i class="fas fa-key"></i> Activation Code
                         </label>
-                        <input type="text" id="code" name="code" class="code-input" required maxlength="8"
-                            pattern="[A-Z0-9]{8}" placeholder="Enter 8-character code" value="<?php
-                            if (isset($_SESSION['activation_data']['code'])) {
-                                echo htmlspecialchars($_SESSION['activation_data']['code']);
-                            }
-                            ?>">
-                        <small style="color: var(--gray); font-size: 12px; display: block; margin-top: 5px;">
+                        <div class="input-container">
+                            <input type="text" id="code" name="code" class="code-input" required maxlength="8"
+                                pattern="[A-Z0-9]{8}" placeholder="A1B2C3D4" value="<?php
+                                if (isset($_SESSION['activation_data']['code'])) {
+                                    echo htmlspecialchars($_SESSION['activation_data']['code']);
+                                }
+                                ?>">
+                        </div>
+                        <div class="input-hint">
                             <i class="fas fa-info-circle"></i> Enter the 8-character code from your email
-                        </small>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn" id="activateBtn">
+                    <button type="submit" class="btn pulse" id="activateBtn">
                         <i class="fas fa-check-circle"></i> <span>Activate Account</span>
                     </button>
 
-                    <!-- < ?php if ($show_test_button): ?>
+                    <!-- <?php if ($show_test_button): ?>
                         <div class="debug-section">
                             <h4><i class="fas fa-tools"></i> Diagnostics</h4>
                             <div class="debug-actions">
@@ -1054,7 +1408,7 @@ function showActivationForm()
                             </div>
                             <div class="test-result" id="testResult"></div>
                         </div>
-                    < ?php endif; ?> -->
+                    <?php endif; ?> -->
                 </form>
 
                 <div class="links">
@@ -1126,7 +1480,8 @@ function showActivationForm()
 
                     console.log('Submitting form:', { code: code, email: email });
 
-                    $('#activateBtn').html('<i class="fas fa-spinner fa-spin"></i> <span>Activating...</span>').prop('disabled', true);
+                    $('#activateBtn').html('<div class="loader"></div> <span>Activating...</span>').prop('disabled', true);
+                    $('#activateBtn').removeClass('pulse');
                     $('#checkStatusLink, #resendLink').css('opacity', '0.5').css('pointer-events', 'none');
 
                     return true;
@@ -1151,7 +1506,7 @@ function showActivationForm()
                 // Auto-hide info messages after 5 seconds
                 if (type === 'info') {
                     setTimeout(() => {
-                        statusDiv.fadeOut();
+                        statusDiv.fadeOut(500);
                     }, 5000);
                 }
 
@@ -1185,19 +1540,19 @@ function showActivationForm()
 
                             switch (data.status) {
                                 case 'activated':
-                                    message = 'Account is already activated';
+                                    message = '✅ Account is already activated';
                                     break;
                                 case 'pending':
-                                    message = `Activation pending (${data.hours_left} hours left)`;
+                                    message = `⏳ Activation pending (${data.hours_left} hours left)`;
                                     break;
                                 case 'expired':
-                                    message = 'Activation code expired';
+                                    message = '⌛ Activation code expired';
                                     break;
                                 case 'no_token':
-                                    message = 'No activation code found';
+                                    message = '🔑 No activation code found';
                                     break;
                                 case 'not_found':
-                                    message = 'Account not found';
+                                    message = '🔍 Account not found';
                                     break;
                                 default:
                                     message = data.message || 'Unknown status';
@@ -1237,6 +1592,9 @@ function showActivationForm()
                 }
 
                 showMessage('Sending new activation code...', 'info');
+                const resendBtn = $('#resendLink');
+                const originalHtml = resendBtn.html();
+                resendBtn.html('<i class="fas fa-spinner fa-spin"></i> Sending...');
 
                 $.post('activate.php?action=resend', { email: btoa(email) })
                     .done(function (response) {
@@ -1245,9 +1603,10 @@ function showActivationForm()
                             const data = JSON.parse(response);
 
                             if (data.status === 'success') {
-                                showMessage(`New code sent! Please check your email.`, 'success');
+                                showMessage(`✅ New code sent! Please check your email.`, 'success');
                                 if (data.code) {
-                                    $('#code').val(data.code).focus();
+                                    $('#code').val(data.code).focus().addClass('pulse');
+                                    setTimeout(() => $('#code').removeClass('pulse'), 2000);
                                 }
                             } else {
                                 showMessage(data.message || 'Failed to send code', 'error');
@@ -1260,6 +1619,9 @@ function showActivationForm()
                     .fail(function (xhr, status, error) {
                         console.error('Resend failed:', error);
                         showMessage('Error sending code. Please try again.', 'error');
+                    })
+                    .always(function () {
+                        resendBtn.html(originalHtml);
                     });
             }
 

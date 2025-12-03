@@ -70,3 +70,39 @@
 [2025-12-03 01:41:13] SHOWING ACTIVATION FORM
 [2025-12-03 01:41:13] Database connection closed
 [2025-12-03 01:41:13] === ACTIVATION SCRIPT ENDED ===
+[2025-12-03 04:04:41] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-03 04:04:41] Database connection SUCCESS
+[2025-12-03 04:04:41] Processing action: 
+[2025-12-03 04:04:41] SHOWING ACTIVATION FORM
+[2025-12-03 04:04:41] Database connection closed
+[2025-12-03 04:04:41] === ACTIVATION SCRIPT ENDED ===
+[2025-12-03 04:33:59] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-03 04:33:59] Database connection SUCCESS
+[2025-12-03 04:33:59] Processing action: 
+[2025-12-03 04:33:59] SHOWING ACTIVATION FORM
+[2025-12-03 04:33:59] Database connection closed
+[2025-12-03 04:33:59] === ACTIVATION SCRIPT ENDED ===
+[2025-12-03 04:34:26] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-03 04:34:26] Database connection SUCCESS
+[2025-12-03 04:34:26] Processing action: 
+[2025-12-03 04:34:26] SHOWING ACTIVATION FORM
+[2025-12-03 04:34:26] Database connection closed
+[2025-12-03 04:34:26] === ACTIVATION SCRIPT ENDED ===
+[2025-12-03 04:35:03] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-03 04:35:03] Database connection SUCCESS
+[2025-12-03 04:35:03] Processing action: 
+[2025-12-03 04:35:03] SHOWING ACTIVATION FORM
+[2025-12-03 04:35:03] Database connection closed
+[2025-12-03 04:35:03] === ACTIVATION SCRIPT ENDED ===
+[2025-12-03 04:46:43] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-03 04:46:43] Database connection SUCCESS
+[2025-12-03 04:46:43] Processing action: 
+[2025-12-03 04:46:43] SHOWING ACTIVATION FORM
+[2025-12-03 04:46:43] Database connection closed
+[2025-12-03 04:46:43] === ACTIVATION SCRIPT ENDED ===
+[2025-12-03 04:51:55] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-03 04:51:55] Database connection SUCCESS
+[2025-12-03 04:51:55] Processing action: 
+[2025-12-03 04:51:55] SHOWING ACTIVATION FORM
+[2025-12-03 04:51:55] Database connection closed
+[2025-12-03 04:51:55] === ACTIVATION SCRIPT ENDED ===
