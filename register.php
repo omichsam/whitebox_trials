@@ -54,6 +54,12 @@ if (isset($_SESSION["id"])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <style>
@@ -676,8 +682,11 @@ if (isset($_SESSION["id"])) {
                         <div class="terms-check">
                             <input type="checkbox" id="terms" name="terms" required>
                             <label for="terms">
-                                I accept the <a href="terms.php" target="_blank">Terms and Conditions</a> and
-                                <a href="privacy.php" target="_blank">Privacy Policy</a>
+                                I accept the
+                                <!-- <a target="_blank">Terms and Conditions</a> and
+                                <a href="privacy.php" target="_blank">Privacy Policy</a> -->
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#termsModalSmall">Terms and
+                                    Conditions</a>
                             </label>
                         </div>
 
@@ -697,6 +706,85 @@ if (isset($_SESSION["id"])) {
                         Already have an account? <a href="index1.php">Sign In</a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <a href="#" data-bs-toggle="modal" data-bs-target="#authModal">Open Auth Modal</a> -->
+
+    <!-- Bootstrap Modal -->
+    <!-- Terms and Conditions Modal (Bootstrap) -->
+    <!-- ============================= -->
+    <!-- Terms & Conditions Modal SMALL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="termsModalSmall" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-3 shadow">
+
+                <!-- Header -->
+                <div class="modal-header bg-light py-2 px-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded bg-white p-1 text-secondary border">
+                            <i class="fa-solid fa-file-contract fa-sm"></i>
+                        </div>
+                        <h2 class="modal-title h6 mb-0">Terms and Conditions</h2>
+                    </div>
+                    <button type="button" class="btn-close btn-md" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body p-3" style="max-height:50vh; overflow-y:auto; font-size:0.875rem;">
+
+                    <h6 class="fw-bold mb-2">1. Introduction</h6>
+                    <p class="mb-2">
+                        These Terms and Conditions govern the use of the Whitebox platform. By accessing or using this
+                        service,
+                        you agree to be bound by these terms.
+                    </p>
+
+                    <h6 class="fw-bold mt-3 mb-2">2. User Responsibilities</h6>
+                    <p class="mb-2">
+                        Users must provide accurate information and use the platform responsibly. Any misuse may result
+                        in
+                        suspension or termination of access.
+                    </p>
+
+                    <h6 class="fw-bold mt-3 mb-2">3. Prohibited Activities</h6>
+                    <ul class="mb-2 ps-3">
+                        <li>Unauthorized access or attempts to breach security.</li>
+                        <li>Use of the platform for illegal or malicious activities.</li>
+                        <li>Distribution of harmful software or data.</li>
+                    </ul>
+
+                    <h6 class="fw-bold mt-3 mb-2">4. Intellectual Property</h6>
+                    <p class="mb-2">
+                        All content, systems, and technologies used by Whitebox are protected by copyright and
+                        intellectual
+                        property laws.
+                    </p>
+
+                    <h6 class="fw-bold mt-3 mb-2">5. Limitation of Liability</h6>
+                    <p class="mb-2">
+                        Whitebox shall not be held liable for any losses arising from system downtime, user error, or
+                        misuse.
+
+                    </p>
+
+                    <h6 class="fw-bold mt-3 mb-2">6. Changes to Terms</h6>
+                    <p class="mb-0">
+                        We may update these Terms at any time. Continued use of the platform implies acceptance of any
+                        changes.
+                    </p>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer bg-light py-2 px-3" hidden>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                        data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">I Agree</button>
+                </div>
+
             </div>
         </div>
     </div>

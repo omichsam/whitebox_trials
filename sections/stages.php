@@ -177,7 +177,7 @@
     </div>
 
     <div class="mt-12 mb-4 text-center">
-        <a onclick="openModal('loginForm')"
+        <a href="index1.php"
             class="inline-flex items-center bg-gradient-to-r from-danger to-danger text-white px-5 py-2.5 rounded-lg font-semibold 
             hover:opacity-90 transition duration-300 shadow-md hover:shadow-lg">
             <span>Start Your Innovation Journey</span>

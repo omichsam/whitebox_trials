@@ -99,7 +99,7 @@
                                 class="bg-danger px-6 py-2 sm:px-8 rounded-lg  sm:py-2 text-base sm:text-lg font-semibold hover:bg-opacity-90 transition duration-300">
                                 Get Started
                             </a>
-                            <a href="javascript:void(0)" onclick="openIPModal()"
+                            <a  onclick="openIPModal()"
                                 class="bg-white text-primary px-6 py-2 rounded-lg  sm:px-8 sm:py-2 text-base sm:text-lg font-semibold hover:bg-gray-100 transition duration-300">
                                 Protect Your IP
                             </a>
