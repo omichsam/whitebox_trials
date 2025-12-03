@@ -120,14 +120,7 @@ if (mysqli_query($con, $sql)) {
                     <p style='font-size: 14px; color: #666;'>8-digit activation code</p>
                 </div>
                 
-                <div style='text-align: center; margin: 20px 0;'>
-                    <p>Or click the link below to activate:</p>
-                    <a href='$activation_link' 
-                       style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
-                              border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
-                        Activate My Account
-                    </a>
-                </div>
+               
                 
                 <p>This activation code will expire in 24 hours.</p>
                 

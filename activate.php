@@ -160,9 +160,7 @@ function sendActivationEmail($email, $first_name, $last_name, $activation_code)
                             $activation_code
                         </div>
                         <p>Enter this 8-character code on the activation page</p>
-                        <a href='$activation_link' style='display: inline-block; background: #085c02; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0;'>
-                            Activate Account Now
-                        </a>
+                       
                     </div>
                     
                     <div style='background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;'>
@@ -684,6 +682,7 @@ function showActivationForm()
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Activate Account - WhiteBox</title>
+         <link rel="icon" type="image/x-icon" href="favicon.ico">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
             rel="stylesheet">
@@ -764,11 +763,11 @@ function showActivationForm()
                 width: 100%;
                 height: 100%;
                 background: linear-gradient(135deg,
-                        rgba(8, 92, 2, 0.85) 0%,
-                        rgba(8, 92, 2, 0.75) 25%,
-                        rgba(13, 110, 0, 0.8) 50%,
-                        rgba(8, 92, 2, 0.85) 75%,
-                        rgba(5, 64, 1, 0.9) 100%);
+                        rgba(71, 192, 62, 0.85) 0%,
+                        rgba(52, 91, 50, 0.75) 25%,
+                        rgba(146, 237, 135, 0.48) 50%,
+                        rgba(103, 144, 100, 0.46) 75%,
+                        rgba(58, 140, 52, 0.9) 100%);
                 z-index: -1;
                 backdrop-filter: blur(2px);
             }

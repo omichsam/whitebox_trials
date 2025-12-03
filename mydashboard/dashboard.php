@@ -374,10 +374,10 @@ color: #5F0000;
 <li>
 <a class="menu_dtz btn notificationbtn" id="" ><i class="fa fa-bell bell_hides no-radius"></i><i class="notyholderp"></i></a> 
 </li>
-<li class="">
-<a class="menu_dtz btn elearningleader <?php echo $get_elerning?>" id="elearningleader" >E-learning</a>
+<!-- <li class="">
+<a class="menu_dtz btn elearningleader < ?php echo $get_elerning?>" id="elearningleader" >E-learning</a>
 <a class="menu_dtz btn elearningrequest btn btn-primary" style="display:none;color: #fff;" id="elearning_request" >E-learning</a> 
-</li>
+</li> -->
 <li><a class="menu_dtz" id="backtoDashboard">My Dashboard</a>
 </li>
 <li><a class="menu_dtz" id="logout">Logout</a>
@@ -734,8 +734,8 @@ color: #5F0000;
 ?>
 
     <!-- Footer Section Start -->
-    <footer>
-        <div class="container-fluid footer-text">
+    <footer >
+        <div class="container-fluid footer-text" >
             <!-- About Us Section Start -->
             <div class="col-sm-4">
                 <h4>About Us</h4>
@@ -753,13 +753,13 @@ facilities/programs through the extensive partner ecosystem.
 
                 <div><h4>Follow Us</h4>
                 <ul class="list-inline">
-                    <!--<li>
+                    <li>
                         <a href="https://www.facebook.com/Whitebox-981156722045221/?modal=admin_todo_tour"> <i class="livicon" data-name="facebook" data-size="18" data-loop="true" data-c="#fff" ata-hc="#ababab" id="livicon-14" style="width: 18px; height: 18px;">
                         </i> </a>
                     </li>
                     <li>
                         <a href="https://twitter.com/Whitebox_Ke"> <i class="livicon" data-name="twitter" data-size="18" data-loop="true" data-c="#fff" data-hc="#ababab" id="livicon-15" style="width: 18px; height: 18px;"></i> </a>
-                    </li>-->
+                    </li>
 
                     <li>
                         <a href="https://plus.google.com/u/1/"> <i class="livicon" data-name="google-plus" data-size="18" data-loop="true" data-c="#fff" data-hc="#ababab" id="livicon-16" style="width: 18px; height: 18px;"></i>                        </a>
@@ -806,7 +806,7 @@ facilities/programs through the extensive partner ecosystem.
     <!-- //Footer Section End -->
 
 <!-- //Footer Section End -->
-<div class="copyright">
+<div class="copyright footer-text">
     <div class="container">
         <p>Copyright © Huduma WhiteBox, <?php echo date('Y')?> </p>
     </div>

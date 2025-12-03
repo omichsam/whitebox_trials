@@ -20,6 +20,110 @@
         }
     }
 
+    /* Add these styles to your CSS */
+    @keyframes gentle-pulse {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+        }
+
+        50% {
+            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+        }
+    }
+
+    .animate-gentle-pulse {
+        animation: gentle-pulse 3s infinite;
+    }
+
+    @keyframes bounce-slow {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .animate-bounce-slow {
+        animation: bounce-slow 2s infinite;
+    }
+
+    @keyframes float-gentle {
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(0deg);
+        }
+
+        33% {
+            transform: translateY(-5px) rotate(1deg);
+        }
+
+        66% {
+            transform: translateY(5px) rotate(-1deg);
+        }
+    }
+
+    .group:hover .animate-gentle-pulse {
+        animation: float-gentle 3s ease-in-out infinite;
+    }
+
+    /* Smooth transitions */
+    .transition-all {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Image fallback styles */
+    img[src*="giphy"] {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+
+    /* Floating animation */
+
+
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    /* Slow pulse animation */
+    @keyframes pulse-slow {
+
+        0%,
+        100% {
+            opacity: 0.2;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+    }
+
+    .animate-pulse-slow {
+        animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Smooth transitions */
+    .transition-all {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Shadow utilities */
+    .shadow-xl {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .hover\:shadow-2xl:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
     .typing-dot {
         animation: typingAnimation 1.4s infinite ease-in-out;
     }
@@ -52,28 +156,152 @@
         <i class="fas  fa-comment-dots text-xl fas-2x"></i>
         <div class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hidden" id="notification-badge">1</div>
     </div> -->
-<div class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-accent to-blue-500 rounded-full flex items-center justify-center text-white shadow-xl cursor-pointer z-50 transition-all duration-300 hover:scale-110 hover:shadow-2xl animate-float"
+<!-- <div class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-accent to-blue-500 rounded-full flex items-center justify-center text-white shadow-xl cursor-pointer z-50 transition-all duration-300 hover:scale-110 hover:shadow-2xl animate-float"
     id="chatbot-icon">
     <div class="absolute inset-0 rounded-full bg-accent animate-pulse-slow opacity-70"></div>
     <i class="fas fa-comment-dots text-2xl relative z-10"></i>
-    <!-- <div class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse shadow-md"
-        id="notification-badge">3</div> -->
+    < !-- <div class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse shadow-md"
+        id="notification-badge">3</div> - ->
+</div> -->
+
+
+<!-- code -->
+<div class="fixed bottom-6 right-6 w-16 h-16 rounded-full flex items-center justify-center cursor-pointer z-50 transition-all duration-300 hover:scale-110 hover:shadow-2xl shadow-xl group"
+    id="chatbot-icon">
+    
+    <!-- Background with shine -->
+    <div class="absolute inset-0 rounded-full bg-gradient-to-br from-blue-600 to-accent shadow-inner"></div>
+    <div class="absolute top-0 left-0 w-full h-1/2 rounded-t-full bg-gradient-to-b from-white/30 to-transparent"></div>
+    
+    <!-- Professional avatar -->
+    <div class="relative z-10">
+        <!-- Avatar circle -->
+        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
+            <!-- Professional person icon -->
+            <div class="relative">
+                <!-- Head with professional look -->
+                <div class="w-8 h-8 rounded-full bg-gradient-to-b from-gray-100 to-gray-200 flex flex-col items-center justify-center">
+                    <!-- Glasses/smart look -->
+                    <div class="flex items-center justify-center space-x-3 mt-1">
+                        <div class="w-2 h-2 bg-gray-700 rounded-full"></div>
+                        <div class="w-2 h-2 bg-gray-700 rounded-full"></div>
+                    </div>
+                    <!-- Professional smile -->
+                    <div class="w-4 h-0.5 bg-gray-600 mt-1 rounded-full"></div>
+                </div>
+                <!-- Tie/formal indication -->
+                <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-blue-600 rounded-b-full"></div>
+            </div>
+        </div>
+        
+        <!-- Chat notification -->
+        <div class="absolute -top-2 -right-2">
+            <div class="relative">
+                <!-- Outer ring -->
+                <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <!-- Speech bubble icon -->
+                    <div class="w-5 h-5 bg-gradient-to-r from-accent to-blue-500 rounded-full flex items-center justify-center">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                </div>
+                <!-- Live indicator -->
+                <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hover label -->
+    <div class="absolute -top-14 right-0 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 min-w-max">
+        <div class="flex items-center gap-2 font-medium">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-sm">Chat with IctaBot</span>
+        </div>
+        <div class="absolute w-3 h-3 bg-white transform rotate-45 -bottom-1.5 right-5"></div>
+    </div>
+    
+    <!-- Subtle pulse animation -->
+    <div class="absolute inset-0 rounded-full border border-white/20 animate-pulse-slow"></div>
 </div>
+<!-- code -->
+<script>
+    // Add this JavaScript to make the face interactive
+    document.addEventListener('DOMContentLoaded', function () {
+        const chatbotIcon = document.getElementById('chatbot-icon');
+        const mainFace = document.getElementById('main-face');
+        const thinkingFace = document.getElementById('thinking-face');
+        const listeningFace = document.getElementById('listening-face');
 
+        // Handle GIF errors
+        const faces = [mainFace, thinkingFace, listeningFace];
+        faces.forEach(face => {
+            face.onerror = function () {
+                this.style.display = 'none';
+                document.getElementById('svg-face-fallback').style.display = 'flex';
+            };
+        });
 
+        // Interactive face expressions on hover
+        let expressionTimeout;
+
+        chatbotIcon.addEventListener('mouseenter', function () {
+            // Switch to listening face
+            mainFace.style.opacity = '0';
+            listeningFace.style.opacity = '1';
+
+            // After 2 seconds, show thinking face
+            clearTimeout(expressionTimeout);
+            expressionTimeout = setTimeout(() => {
+                listeningFace.style.opacity = '0';
+                thinkingFace.style.opacity = '1';
+            }, 2000);
+        });
+
+        chatbotIcon.addEventListener('mouseleave', function () {
+            // Reset to main face
+            clearTimeout(expressionTimeout);
+            thinkingFace.style.opacity = '0';
+            listeningFace.style.opacity = '0';
+            mainFace.style.opacity = '1';
+        });
+
+        // Click to chat
+        chatbotIcon.addEventListener('click', function () {
+            // Add click animation
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1.1)';
+            }, 100);
+
+            // Open chat window (your implementation)
+            openChatWindow();
+        });
+
+        // Random face blinking effect
+        setInterval(() => {
+            if (!chatbotIcon.matches(':hover')) {
+                mainFace.style.opacity = '0.8';
+                setTimeout(() => {
+                    mainFace.style.opacity = '1';
+                }, 200);
+            }
+        }, 5000);
+    });
+</script>
 
 
 <!-- Chatbot Container -->
 <div class="fixed bottom-24 border border-2 border-light right-6 w-80 h-[500px] bg-white rounded-xl shadow-xl flex flex-col z-60 opacity-0 translate-y-5 pointer-events-none transition-all duration-300"
     id="chatbot-container">
     <!-- Header -->
-    <div class="bg-accent text-white p-3 rounded-t-xl flex justify-between items-center">
+    <div class="bg-accent text-white p-2 rounded-t-xl flex justify-between items-center">
         <div class="flex items-center">
             <div class="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center mr-3">
                 <i class="fas fa-robot"></i>
             </div>
             <div>
-                <h4 class="font-semibold">Huduma Assistant</h4>
+                <h4 class="font-semibold">Whitebox Assistant</h4>
                 <p class="text-xs opacity-90 flex items-center">
                     <span class="w-2 h-2 bg-green-400 rounded-full mr-1"></span>
                     <span id="status-text">Online</span>
@@ -170,12 +398,12 @@
             <div class="bg-white rounded-lg p-3 shadow max-w-[70%]">
                 <div class="text-sm">
                     <p>Hello! 👋 I'm your <strong>Whitebox Assistant</strong>.</p>
-                    <p class="mt-1">I can help you with:</p>
+                    <p class="mt-1">I can help with:</p>
                     <ul class="list-disc pl-5 mt-1">
                         <li>Whitebox Application</li>
-                        <li>Whitebox Onboarding</li>
-                        <li>Enterprenuership guidance</li>
-                        <li>Coaching & ...</li>
+                        <li>Onboarding</li>
+                        <li>Entrepreneurship</li>
+                        <li>Coaching & more</li>
                     </ul>
                     <p class="mt-1">How can I assist you today?</p>
                 </div>
@@ -239,7 +467,7 @@
         let isFormatVisible = false;
         let sessionId = generateSessionId();
         //const API_BASE_URL = 'http://localhost:8007/api';
-	const API_BASE_URL = 'http://10.241.18.19:8006/api';
+        const API_BASE_URL = 'http://10.241.18.19:8006/api';
 
         // Generate a unique session ID
         function generateSessionId() {

@@ -90,11 +90,14 @@ try {
 
         // Set session
         $_SESSION["loggedin"] = true;
+        // $_SESSION["id"] = generateSessionCode();
         $_SESSION["username"] = $user['email'];
         $_SESSION["email"] = $user['email'];
         $_SESSION["first_name"] = $user['first_name'] ?? '';
         $_SESSION["last_name"] = $user['last_name'] ?? '';
         $_SESSION["user_id"] = $user['id'] ?? '';
+
+
 
         // Update last login
         mysqli_query($con, "UPDATE users SET last_login=NOW() WHERE email='$my_user'");
@@ -149,14 +152,7 @@ try {
                         <p style='font-size: 14px; color: #666;'>8-digit activation code</p>
                     </div>
                     
-                    <div style='text-align: center; margin: 20px 0;'>
-                        <p>Or click the link below:</p>
-                        <a href='$activation_link' 
-                           style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
-                                  border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
-                            Activate My Account
-                        </a>
-                    </div>
+                   
                     
                     <p>This code will expire in 24 hours.</p>
                     

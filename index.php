@@ -8,6 +8,7 @@
     <title>Huduma WhiteBox - Innovation Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="sources/css/style.css">
+     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
