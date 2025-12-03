@@ -1,5 +1,5 @@
 <?php
-// login/register.php - Simplified Registration
+// login/register.php - Registration with activation link
 session_start();
 
 // Enable error reporting for debugging
@@ -93,11 +93,15 @@ $sql = "INSERT INTO users (first_name, last_name, email, phone, gender, password
                 '$expiry_time', 'not_activated', '$current_time', '$current_time')";
 
 if (mysqli_query($con, $sql)) {
-    // Prepare email
+    // Prepare activation data for response
     $codeb = base64_encode($activation_code);
     $keyb = base64_encode($email);
+    $user_id = mysqli_insert_id($con);
     
+    // Prepare email content
     $subject = "Account Activation Required - WhiteBox";
+    $activation_link = "http://whitebox.go.ke/activate.php?code=$codeb&key=$keyb";
+    
     $message = "
         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
             <div style='background: #085c02; color: white; padding: 20px; text-align: center;'>
@@ -116,7 +120,16 @@ if (mysqli_query($con, $sql)) {
                     <p style='font-size: 14px; color: #666;'>8-digit activation code</p>
                 </div>
                 
-                <p>Enter this code on the activation page within 24 hours.</p>
+                <div style='text-align: center; margin: 20px 0;'>
+                    <p>Or click the link below to activate:</p>
+                    <a href='$activation_link' 
+                       style='background: #085c02; color: white; padding: 12px 24px; text-decoration: none; 
+                              border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        Activate My Account
+                    </a>
+                </div>
+                
+                <p>This activation code will expire in 24 hours.</p>
                 
                 <p style='margin-bottom: 0;'>
                     Best regards,<br>
@@ -129,7 +142,7 @@ if (mysqli_query($con, $sql)) {
         </div>
     ";
     
-    // Send email using mailer
+    // Send email using mailer (silently)
     $mail_subject = $subject;
     $mail_message = $message;
     $mail_to = $email;
@@ -149,7 +162,18 @@ if (mysqli_query($con, $sql)) {
     // Discard any output from mailer
     ob_end_clean();
     
-    echo base64_encode('success');
+    // Return success with activation link data
+    $response_data = [
+        'status' => 'success',
+        'message' => 'Account created successfully!',
+        'activation_code' => $activation_code,
+        'email' => $email,
+        'activation_link' => $activation_link,
+        'direct_link' => "activate.php?code=$codeb&key=$keyb"
+    ];
+    
+    echo base64_encode(json_encode($response_data));
+    
 } else {
     error_log("Registration failed: " . mysqli_error($con));
     echo base64_encode('db_error');

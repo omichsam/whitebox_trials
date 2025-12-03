@@ -700,179 +700,233 @@ if (isset($_SESSION["id"])) {
         </div>
     </div>
 
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function () {
-    // Hide all messages initially
-    $("#error_data").hide();
-    $("#success_data").hide();
-    $("#warning_data").hide();
+    <script>
+        $(document).ready(function () {
+            // Hide all messages initially
+            $("#error_data").hide();
+            $("#success_data").hide();
+            $("#warning_data").hide();
 
-    // Password visibility toggle
-    $('#togglePassword').click(function () {
-        togglePasswordVisibility('password', 'togglePassword');
-    });
+            // Password visibility toggle
+            $('#togglePassword').click(function () {
+                togglePasswordVisibility('password', 'togglePassword');
+            });
 
-    $('#toggleConfirmPassword').click(function () {
-        togglePasswordVisibility('confirm_password', 'toggleConfirmPassword');
-    });
+            $('#toggleConfirmPassword').click(function () {
+                togglePasswordVisibility('confirm_password', 'toggleConfirmPassword');
+            });
 
-    // Registration button click
-    $('#register_btn').click(function () {
-        registerUser();
-    });
+            // Registration button click
+            $('#register_btn').click(function () {
+                registerUser();
+            });
 
-    // Enter key to submit form
-    $('#registerForm input').keypress(function (e) {
-        if (e.which == 13) {
-            registerUser();
-        }
-    });
-
-    // Functions
-    function togglePasswordVisibility(inputId, buttonId) {
-        const input = $('#' + inputId);
-        const icon = $('#' + buttonId + ' i');
-        
-        if (input.attr('type') === 'password') {
-            input.attr('type', 'text');
-            icon.removeClass('fa-eye').addClass('fa-eye-slash');
-        } else {
-            input.attr('type', 'password');
-            icon.removeClass('fa-eye-slash').addClass('fa-eye');
-        }
-    }
-
-    function validateEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    function validatePhone(phone) {
-        const digits = phone.replace(/\D/g, '');
-        return digits.length >= 10;
-    }
-
-    function registerUser() {
-        // Get form values
-        const firstName = $('#first_name').val().trim();
-        const lastName = $('#last_name').val().trim();
-        const email = $('#email').val().trim();
-        const phone = $('#phone').val().trim();
-        const gender = $('#gender').val();
-        const password = $('#password').val();
-        const confirmPassword = $('#confirm_password').val();
-        const termsAccepted = $('#terms').is(':checked');
-
-        // Hide previous messages
-        $('#error_data, #success_data, #warning_data').hide().html('');
-
-        // Basic validation
-        if (!firstName || !lastName || !email || !phone || !gender || !password || !confirmPassword) {
-            $('#error_data').html('All fields are required.').show();
-            return;
-        }
-
-        if (!validateEmail(email)) {
-            $('#error_data').html('Please enter a valid email address.').show();
-            return;
-        }
-
-        if (!validatePhone(phone)) {
-            $('#error_data').html('Please enter a valid phone number (at least 10 digits).').show();
-            return;
-        }
-
-        if (password.length < 8) {
-            $('#error_data').html('Password must be at least 8 characters long.').show();
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            $('#error_data').html('Passwords do not match.').show();
-            return;
-        }
-
-        if (!termsAccepted) {
-            $('#error_data').html('You must accept the Terms and Conditions.').show();
-            return;
-        }
-
-        // Show loading
-        const $btn = $('#register_btn');
-        $btn.html('<i class="fas fa-spinner fa-spin"></i> Creating Account...').prop('disabled', true);
-
-        // Prepare data
-        const formData = {
-            first_name: btoa(firstName),
-            last_name: btoa(lastName),
-            email: btoa(email),
-            phone: btoa(phone),
-            gender: btoa(gender),
-            password: btoa(password),
-            confirm_password: btoa(confirmPassword)
-        };
-
-        // Send request
-        $.ajax({
-            url: 'login/register.php',
-            type: 'POST',
-            data: formData,
-            timeout: 10000,
-            success: function (response) {
-                console.log('Server response:', response);
-                
-                try {
-                    const result = atob(response);
-                    console.log('Decoded result:', result);
-                    
-                    switch (result) {
-                        case 'success':
-                            $('#success_data').html('✓ Account created successfully! Check your email for activation.').show();
-                            $('#registerForm')[0].reset();
-                            break;
-                        case 'email_exists':
-                            $('#error_data').html('Email already registered. Try logging in.').show();
-                            break;
-                        case 'password_mismatch':
-                            $('#error_data').html('Passwords do not match.').show();
-                            break;
-                        case 'password_short':
-                            $('#error_data').html('Password must be at least 8 characters.').show();
-                            break;
-                        case 'invalid_email':
-                            $('#error_data').html('Invalid email address.').show();
-                            break;
-                        case 'db_error':
-                        case 'db_connection_error':
-                            $('#error_data').html('Database error. Please try again.').show();
-                            break;
-                        default:
-                            if (result.startsWith('missing_field:')) {
-                                $('#error_data').html('Please fill all fields.').show();
-                            } else {
-                                $('#error_data').html('Registration failed. Try again.').show();
-                            }
-                    }
-                } catch (e) {
-                    console.error('Decoding error:', e);
-                    $('#error_data').html('Server error. Please try again.').show();
+            // Enter key to submit form
+            $('#registerForm input').keypress(function (e) {
+                if (e.which == 13) {
+                    registerUser();
                 }
-                
-                resetButton($btn);
-            },
-            error: function (xhr, status, error) {
-                console.error('AJAX error:', status, error);
-                $('#error_data').html('Connection error. Please check your internet.').show();
-                resetButton($btn);
+            });
+
+            // Functions
+            function togglePasswordVisibility(inputId, buttonId) {
+                const input = $('#' + inputId);
+                const icon = $('#' + buttonId + ' i');
+
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            }
+
+            function validateEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+
+            function validatePhone(phone) {
+                const digits = phone.replace(/\D/g, '');
+                return digits.length >= 10;
+            }
+
+            function registerUser() {
+                // Get form values
+                const firstName = $('#first_name').val().trim();
+                const lastName = $('#last_name').val().trim();
+                const email = $('#email').val().trim();
+                const phone = $('#phone').val().trim();
+                const gender = $('#gender').val();
+                const password = $('#password').val();
+                const confirmPassword = $('#confirm_password').val();
+                const termsAccepted = $('#terms').is(':checked');
+
+                // Hide previous messages
+                $('#error_data, #success_data, #warning_data').hide().html('');
+
+                // Basic validation
+                if (!firstName || !lastName || !email || !phone || !gender || !password || !confirmPassword) {
+                    $('#error_data').html('All fields are required.').show();
+                    return;
+                }
+
+                if (!validateEmail(email)) {
+                    $('#error_data').html('Please enter a valid email address.').show();
+                    return;
+                }
+
+                if (!validatePhone(phone)) {
+                    $('#error_data').html('Please enter a valid phone number (at least 10 digits).').show();
+                    return;
+                }
+
+                if (password.length < 8) {
+                    $('#error_data').html('Password must be at least 8 characters long.').show();
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    $('#error_data').html('Passwords do not match.').show();
+                    return;
+                }
+
+                if (!termsAccepted) {
+                    $('#error_data').html('You must accept the Terms and Conditions.').show();
+                    return;
+                }
+
+                // Show loading
+                const $btn = $('#register_btn');
+                $btn.html('<i class="fas fa-spinner fa-spin"></i> Creating Account...').prop('disabled', true);
+
+                // Prepare data
+                const formData = {
+                    first_name: btoa(firstName),
+                    last_name: btoa(lastName),
+                    email: btoa(email),
+                    phone: btoa(phone),
+                    gender: btoa(gender),
+                    password: btoa(password),
+                    confirm_password: btoa(confirmPassword)
+                };
+
+                // Send request
+                $.ajax({
+                    url: 'login/register.php',
+                    type: 'POST',
+                    data: formData,
+                    timeout: 10000,
+                    success: function (response) {
+                        console.log('Server response:', response);
+
+                        try {
+                            const decoded = atob(response);
+
+                            // Check if it's JSON response (success with activation data)
+                            if (decoded.startsWith('{')) {
+                                const data = JSON.parse(decoded);
+
+                                if (data.status === 'success') {
+                                    // Show success message with activation link
+                                    const successMessage = `
+                                <div style="text-align: center; padding: 20px;">
+                                    <div style="font-size: 48px; color: #085c02; margin-bottom: 15px;">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <h3 style="color: #085c02; margin-bottom: 15px;">Account Created Successfully!</h3>
+                                    <p style="margin-bottom: 20px;">
+                                        Welcome to WhiteBox! Your account has been created successfully.
+                                    </p>
+                                    
+                                    <div style="background: #f8f9fa; border: 2px solid #085c02; padding: 20px; 
+                                                border-radius: 10px; margin: 20px 0;">
+                                        <p><strong>Activation Code:</strong></p>
+                                        <div style="font-size: 28px; font-weight: bold; letter-spacing: 4px; 
+                                                    color: #333; margin: 15px 0; padding: 15px; 
+                                                    background: white; border-radius: 6px;
+                                                    font-family: monospace;">
+                                            ${data.activation_code}
+                                        </div>
+                                        <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                                            Check your email at <strong>${email}</strong> for this code
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="margin: 25px 0;">
+                                        <p><strong>Activate Now:</strong></p>
+                                        <a href="${data.direct_link}" 
+                                           style="background: #085c02; color: white; padding: 14px 30px; 
+                                                  text-decoration: none; border-radius: 8px; font-weight: bold; 
+                                                  font-size: 16px; display: inline-block; margin: 10px;">
+                                            <i class="fas fa-key"></i> Activate Account Now
+                                        </a>
+                                        <p style="margin-top: 15px; font-size: 14px;">
+                                            Or go to: <a href="${data.direct_link}" style="color: #085c02;">
+                                            ${data.direct_link}</a>
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; 
+                                                padding: 15px; margin: 20px 0; text-align: left;">
+                                        <p style="margin: 0;"><i class="fas fa-info-circle"></i> 
+                                           <strong>Note:</strong> Activation code expires in 24 hours</p>
+                                    </div>
+                                </div>
+                            `;
+
+                                    $('#success_data').html(successMessage).show();
+                                    $('#registerForm')[0].reset();
+                                }
+                            } else {
+                                // Handle error responses
+                                handleErrorResponse(decoded);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            $('#error_data').html('Server error. Please try again.').show();
+                        }
+
+                        resetButton($btn);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('AJAX error:', status, error);
+                        $('#error_data').html('Connection error. Please check your internet.').show();
+                        resetButton($btn);
+                    }
+                });
+            }
+
+            function handleErrorResponse(errorCode) {
+                const messages = {
+                    'email_exists': 'Email already registered. Try logging in.',
+                    'password_mismatch': 'Passwords do not match.',
+                    'password_short': 'Password must be at least 8 characters.',
+                    'invalid_email': 'Invalid email address.',
+                    'db_error': 'Database error. Please try again.',
+                    'db_connection_error': 'Database connection failed.',
+                    'invalid_request': 'Invalid request.',
+                    'invalid_encoding': 'Invalid data encoding.'
+                };
+
+                if (errorCode.startsWith('missing_field:')) {
+                    $('#error_data').html('Please fill all required fields.').show();
+                } else if (messages[errorCode]) {
+                    $('#error_data').html(messages[errorCode]).show();
+                } else {
+                    $('#error_data').html('Registration failed. Please try again.').show();
+                }
+            }
+
+            function resetButton($btn) {
+                $btn.html('<i class="fas fa-user-plus"></i> Create Account').prop('disabled', false);
             }
         });
-    }
+    </script>
 
-    function resetButton($btn) {
-        $btn.html('<i class="fas fa-user-plus"></i> Create Account').prop('disabled', false);
-    }
-});
-</script>
+
 </body>
 
 </html>
