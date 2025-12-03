@@ -56,8 +56,10 @@
 
     <!-- Database Connection -->
     <?php
-    include 'config/connect.php';
+    include 'connect.php';
 
+
+    
     if (!$con) {
         die("Database connection failed: " . mysqli_connect_error());
     }
