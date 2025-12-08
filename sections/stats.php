@@ -79,7 +79,7 @@ echo "<script>
             the growth of innovation in
             Kenya's key economic sectors</p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 ">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-12 ">
             <!-- Card 1 -->
 
             <div
@@ -106,7 +106,7 @@ echo "<script>
 
             <!-- Card 3 -->
 
-            <div
+            <!-- <div
                 class="animate-on-scroll gradient-light p-6 rounded-xl shadow-md flex flex-col items-center text-center hover:shadow-lg transition duration-300">
                 <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                     <i class="fas fa-check-circle text-purple-600 text-xl"></i>
@@ -114,7 +114,7 @@ echo "<script>
                 <h4 class="text-lg font-semibold text-primary mb-2">Approved
                     Projects</h4>
                 <p class="text-3xl font-bold text-danger" id="project-count">0</p>
-            </div>
+            </div> -->
         </div>
 
         <h2 class="text-3xl font-bold text-center text-accent mb-4">BETA

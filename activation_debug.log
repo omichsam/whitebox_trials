@@ -148,3 +148,48 @@
 [2025-12-03 07:03:04] SHOWING ACTIVATION FORM
 [2025-12-03 07:03:04] Database connection closed
 [2025-12-03 07:03:04] === ACTIVATION SCRIPT ENDED ===
+[2025-12-04 12:34:51] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"85qbldrj4sk5ih8lfcjjherhic","ip":"::1"}
+[2025-12-04 12:34:51] Database connection SUCCESS
+[2025-12-04 12:34:51] Processing action: 
+[2025-12-04 12:34:51] SHOWING ACTIVATION FORM
+[2025-12-04 12:34:51] Database connection closed
+[2025-12-04 12:34:51] === ACTIVATION SCRIPT ENDED ===
+[2025-12-04 12:35:05] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"POST","action":"check","session_id":"85qbldrj4sk5ih8lfcjjherhic","ip":"::1"}
+[2025-12-04 12:35:05] Database connection SUCCESS
+[2025-12-04 12:35:05] Processing action: check
+[2025-12-04 12:35:05] CHECK ACTIVATION STATUS | Data: {"email_encoded":"b21pY2hzYW1AZ21haWwuY29t"}
+[2025-12-04 12:35:05] Checking status for | Data: {"email":"omi..."}
+[2025-12-04 12:35:05] Executing query | Data: SELECT id, first_name, country, token, token_expires_at FROM users WHERE email='omichsam@gmail.com'
+[2025-12-04 12:35:05] User found | Data: {"user_id":"2829","country":"KE","has_token":false}
+[2025-12-04 12:35:46] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"POST","action":"check","session_id":"85qbldrj4sk5ih8lfcjjherhic","ip":"::1"}
+[2025-12-04 12:35:46] Database connection SUCCESS
+[2025-12-04 12:35:46] Processing action: check
+[2025-12-04 12:35:46] CHECK ACTIVATION STATUS | Data: {"email_encoded":"b21pY2hzYW1AZ21haWwuY29t"}
+[2025-12-04 12:35:46] Checking status for | Data: {"email":"omi..."}
+[2025-12-04 12:35:46] Executing query | Data: SELECT id, first_name, country, token, token_expires_at FROM users WHERE email='omichsam@gmail.com'
+[2025-12-04 12:35:46] User found | Data: {"user_id":"2829","country":"KE","has_token":false}
+[2025-12-04 12:42:00] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"POST","action":"check","session_id":"85qbldrj4sk5ih8lfcjjherhic","ip":"::1"}
+[2025-12-04 12:42:00] Database connection SUCCESS
+[2025-12-04 12:42:00] Processing action: check
+[2025-12-04 12:42:00] CHECK ACTIVATION STATUS | Data: {"email_encoded":"b21pY2hzYW1AZ21haWwuY29t"}
+[2025-12-04 12:42:00] Checking status for | Data: {"email":"omi..."}
+[2025-12-04 12:42:00] Executing query | Data: SELECT id, first_name, country, token, token_expires_at FROM users WHERE email='omichsam@gmail.com'
+[2025-12-04 12:42:00] User found | Data: {"user_id":"2829","country":"KE","has_token":false}
+[2025-12-05 10:06:44] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-05 10:06:44] Database connection SUCCESS
+[2025-12-05 10:06:44] Processing action: 
+[2025-12-05 10:06:44] SHOWING ACTIVATION FORM
+[2025-12-05 10:06:44] Database connection closed
+[2025-12-05 10:06:44] === ACTIVATION SCRIPT ENDED ===
+[2025-12-05 10:06:52] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-05 10:06:52] Database connection SUCCESS
+[2025-12-05 10:06:52] Processing action: 
+[2025-12-05 10:06:52] SHOWING ACTIVATION FORM
+[2025-12-05 10:06:52] Database connection closed
+[2025-12-05 10:06:52] === ACTIVATION SCRIPT ENDED ===
+[2025-12-05 10:07:01] === ACTIVATION SCRIPT STARTED === | Data: {"script":"activate.php","method":"GET","action":"none","session_id":"2fsqcrp8ut0vbqstj2g7ne012a","ip":"::1"}
+[2025-12-05 10:07:01] Database connection SUCCESS
+[2025-12-05 10:07:01] Processing action: 
+[2025-12-05 10:07:01] SHOWING ACTIVATION FORM
+[2025-12-05 10:07:01] Database connection closed
+[2025-12-05 10:07:01] === ACTIVATION SCRIPT ENDED ===
