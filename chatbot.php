@@ -168,11 +168,11 @@
 <!-- code -->
 <div class="fixed bottom-6 right-6 w-16 h-16 rounded-full flex items-center justify-center cursor-pointer z-50 transition-all duration-300 hover:scale-110 hover:shadow-2xl shadow-xl group"
     id="chatbot-icon">
-    
+
     <!-- Background with shine -->
     <div class="absolute inset-0 rounded-full bg-gradient-to-br from-blue-600 to-accent shadow-inner"></div>
     <div class="absolute top-0 left-0 w-full h-1/2 rounded-t-full bg-gradient-to-b from-white/30 to-transparent"></div>
-    
+
     <!-- Professional avatar -->
     <div class="relative z-10">
         <!-- Avatar circle -->
@@ -180,7 +180,8 @@
             <!-- Professional person icon -->
             <div class="relative">
                 <!-- Head with professional look -->
-                <div class="w-8 h-8 rounded-full bg-gradient-to-b from-gray-100 to-gray-200 flex flex-col items-center justify-center">
+                <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-b from-gray-100 to-gray-200 flex flex-col items-center justify-center">
                     <!-- Glasses/smart look -->
                     <div class="flex items-center justify-center space-x-3 mt-1">
                         <div class="w-2 h-2 bg-gray-700 rounded-full"></div>
@@ -190,19 +191,22 @@
                     <div class="w-4 h-0.5 bg-gray-600 mt-1 rounded-full"></div>
                 </div>
                 <!-- Tie/formal indication -->
-                <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-blue-600 rounded-b-full"></div>
+                <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-2 bg-blue-600 rounded-b-full">
+                </div>
             </div>
         </div>
-        
+
         <!-- Chat notification -->
         <div class="absolute -top-2 -right-2">
             <div class="relative">
                 <!-- Outer ring -->
                 <div class="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-lg">
                     <!-- Speech bubble icon -->
-                    <div class="w-5 h-5 bg-gradient-to-r from-accent to-blue-500 rounded-full flex items-center justify-center">
+                    <div
+                        class="w-5 h-5 bg-gradient-to-r from-accent to-blue-500 rounded-full flex items-center justify-center">
                         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                     </div>
                 </div>
@@ -211,16 +215,17 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Hover label -->
-    <div class="absolute -top-14 right-0 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 min-w-max">
+    <div
+        class="absolute -top-14 right-0 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 min-w-max">
         <div class="flex items-center gap-2 font-medium">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             <span class="text-sm">Chat with IctaBot</span>
         </div>
         <div class="absolute w-3 h-3 bg-white transform rotate-45 -bottom-1.5 right-5"></div>
     </div>
-    
+
     <!-- Subtle pulse animation -->
     <div class="absolute inset-0 rounded-full border border-white/20 animate-pulse-slow"></div>
 </div>
@@ -467,7 +472,7 @@
         let isFormatVisible = false;
         let sessionId = generateSessionId();
         //const API_BASE_URL = 'http://localhost:8007/api';
-        const API_BASE_URL = 'http://10.241.18.243:8006/api';
+        const API_BASE_URL = 'http://41.76.171.243:8006/api';
 
         // Generate a unique session ID
         function generateSessionId() {
