@@ -131,12 +131,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // const API_BASE_URL = 'http://127.0.0.1:5000';
-        // const TWEETS_LIMIT = 10;
-
-	//const API_BASE_URL = 'http://127.0.0.1:5000';
-        //const API_BASE_URL = 'http://10.241.18.19:8010/api/post';
-        const API_BASE_URL = 'http://10.241.18.19:8010';
+        const API_BASE_URL = 'https://whitebox.go.ke/api/twitter';
         const TWEETS_LIMIT = 10;
 
         function formatRelativeTime(createdAt) {
@@ -149,12 +144,12 @@
             const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-            if (diffMins < 1) return 'now';
-            if (diffMins < 60) return `${diffMins}m`;
-            if (diffHours < 24) return `${diffHours}h`;
-            if (diffDays < 7) return `${diffDays}d`;
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
 
-            return tweetTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return tweetTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
         function formatTweetText(text) {
@@ -253,7 +248,7 @@
 
         async function fetchTweets() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/posts?limit=${TWEETS_LIMIT}`);
+                const response = await fetch(`${API_BASE_URL}/posts?limit=${TWEETS_LIMIT}`);
 
                 if (!response.ok) {
                     throw new Error(`API returned status: ${response.status}`);
@@ -261,8 +256,15 @@
 
                 const data = await response.json();
 
-                if (data.success && data.posts && data.posts.length > 0) {
+                // Handle different API response structures
+                if (data.posts && data.posts.length > 0) {
                     const tweetsHTML = data.posts.map(tweet => createTweetHTML(tweet)).join('');
+                    document.getElementById('tweetsContainer').innerHTML = tweetsHTML;
+                } else if (data.success && data.posts && data.posts.length > 0) {
+                    const tweetsHTML = data.posts.map(tweet => createTweetHTML(tweet)).join('');
+                    document.getElementById('tweetsContainer').innerHTML = tweetsHTML;
+                } else if (Array.isArray(data) && data.length > 0) {
+                    const tweetsHTML = data.map(tweet => createTweetHTML(tweet)).join('');
                     document.getElementById('tweetsContainer').innerHTML = tweetsHTML;
                 } else {
                     showNoTweetsMessage();
@@ -282,6 +284,7 @@
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         .tweet:hover {
             background-color: rgba(255, 255, 255, 0.05);
@@ -290,6 +293,43 @@
         }
         .tweet:active {
             transform: translateY(0);
+        }
+        
+        .tweet-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .tweet-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1da1f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .tweet-author {
+            font-weight: bold;
+            color: #f1f1f1;
+            display: block;
+        }
+        
+        .tweet-handle {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-left: 4px;
+        }
+        
+        .tweet-time {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-left: 4px;
         }
         
         .tweet-link {
@@ -378,6 +418,7 @@
             line-height: 1.4;
             margin-bottom: 12px;
             word-wrap: break-word;
+            font-size: 15px;
         }
         .tweet-content a {
             color: #1da1f2;
@@ -387,12 +428,16 @@
             text-decoration: underline;
         }
         
-        /* Tweet actions - prevent click propagation */
+        /* Tweet actions */
         .tweet-actions {
-            pointer-events: none;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         .tweet-action {
-            pointer-events: auto;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -400,9 +445,13 @@
             font-size: 14px;
             cursor: pointer;
             transition: color 0.2s;
+            user-select: none;
         }
         .tweet-action:hover {
             color: #1da1f2;
+        }
+        .tweet-action i {
+            font-size: 16px;
         }
     `;
         document.head.appendChild(style);

@@ -472,8 +472,7 @@
         let isFormatVisible = false;
         let sessionId = generateSessionId();
         //const API_BASE_URL = 'http://localhost:8007/api';
-        const API_BASE_URL = 'http://41.76.171.243:8006/api';
-
+        const API_BASE_URL = 'https://whitebox.go.ke/api/chatbot/'; 
         // Generate a unique session ID
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
