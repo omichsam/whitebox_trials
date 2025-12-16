@@ -165,7 +165,6 @@
 </div> -->
 
 
-<!-- code -->
 <div class="fixed bottom-6 right-6 w-16 h-16 rounded-full flex items-center justify-center cursor-pointer z-50 transition-all duration-300 hover:scale-110 hover:shadow-2xl shadow-xl group"
     id="chatbot-icon">
 
@@ -216,12 +215,12 @@
         </div>
     </div>
 
-    <!-- Hover label -->
+    <!-- Hover label - hidden on small screens -->
     <div
-        class="absolute -top-14 right-0 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 min-w-max">
+        class="hidden md:block absolute -top-14 right-0 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 min-w-max hover-label">
         <div class="flex items-center gap-2 font-medium">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span class="text-sm">Chat with IctaBot</span>
+            <span class="text-sm">Chat with us</span>
         </div>
         <div class="absolute w-3 h-3 bg-white transform rotate-45 -bottom-1.5 right-5"></div>
     </div>
@@ -229,46 +228,120 @@
     <!-- Subtle pulse animation -->
     <div class="absolute inset-0 rounded-full border border-white/20 animate-pulse-slow"></div>
 </div>
-<!-- code -->
+
 <script>
-    // Add this JavaScript to make the face interactive
     document.addEventListener('DOMContentLoaded', function () {
         const chatbotIcon = document.getElementById('chatbot-icon');
-        const mainFace = document.getElementById('main-face');
-        const thinkingFace = document.getElementById('thinking-face');
-        const listeningFace = document.getElementById('listening-face');
+        let isTyping = false;
+        let hoverTimeout;
+        let hoverEnabled = true;
+        let chatWindowOpen = false; // Track if chat window is open
 
-        // Handle GIF errors
-        const faces = [mainFace, thinkingFace, listeningFace];
-        faces.forEach(face => {
-            face.onerror = function () {
-                this.style.display = 'none';
-                document.getElementById('svg-face-fallback').style.display = 'flex';
-            };
+        // Function to check if user is typing in any input/textarea
+        function checkTyping() {
+            const activeElement = document.activeElement;
+            const isInputElement = activeElement.tagName === 'INPUT' ||
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.isContentEditable;
+
+            return isInputElement;
+        }
+
+        // Function to check if element is inside chat window
+        function isInsideChatWindow(element) {
+            // Adjust this selector to match your chat window container
+            const chatWindow = document.querySelector('#chat-window, .chat-window, [data-chat-window]');
+            if (!chatWindow) return false;
+
+            return chatWindow.contains(element);
+        }
+
+        // Monitor typing activity - but exclude typing inside chat window
+        document.addEventListener('focusin', function (e) {
+            // Check if the focused element is inside the chat window
+            if (isInsideChatWindow(e.target)) {
+                // Don't disable hover if typing inside chat window
+                return;
+            }
+
+            if (e.target.tagName === 'INPUT' ||
+                e.target.tagName === 'TEXTAREA' ||
+                e.target.isContentEditable) {
+                isTyping = true;
+                hoverEnabled = false;
+                chatbotIcon.classList.remove('group');
+            }
         });
 
-        // Interactive face expressions on hover
-        let expressionTimeout;
+        document.addEventListener('focusout', function (e) {
+            // Check if the blurred element was inside the chat window
+            if (isInsideChatWindow(e.target)) {
+                return; // Don't change hover state if leaving chat window input
+            }
 
+            if (e.target.tagName === 'INPUT' ||
+                e.target.tagName === 'TEXTAREA' ||
+                e.target.isContentEditable) {
+                // Small delay before re-enabling hover
+                setTimeout(() => {
+                    isTyping = false;
+                    hoverEnabled = true;
+                    chatbotIcon.classList.add('group');
+                }, 500);
+            }
+        });
+
+        // Prevent form submit from affecting hover
+        document.addEventListener('submit', function (e) {
+            // If form is inside chat window, don't disable hover
+            if (isInsideChatWindow(e.target)) {
+                return;
+            }
+
+            // For forms outside chat window, disable hover temporarily
+            isTyping = true;
+            hoverEnabled = false;
+            chatbotIcon.classList.remove('group');
+
+            // Re-enable after form submission
+            setTimeout(() => {
+                isTyping = false;
+                hoverEnabled = true;
+                if (!isSmallScreen()) {
+                    chatbotIcon.classList.add('group');
+                }
+            }, 1000);
+        });
+
+        // Check screen size
+        function isSmallScreen() {
+            return window.innerWidth < 768;
+        }
+
+        // Check screen size and typing status before showing hover
+        function shouldShowHover() {
+            // Don't show hover on small screens or when typing outside chat window
+            return !isSmallScreen() && !isTyping && hoverEnabled;
+        }
+
+        // Modified mouseenter event
         chatbotIcon.addEventListener('mouseenter', function () {
-            // Switch to listening face
-            mainFace.style.opacity = '0';
-            listeningFace.style.opacity = '1';
+            if (!shouldShowHover()) return;
 
-            // After 2 seconds, show thinking face
-            clearTimeout(expressionTimeout);
-            expressionTimeout = setTimeout(() => {
-                listeningFace.style.opacity = '0';
-                thinkingFace.style.opacity = '1';
-            }, 2000);
+            // Add slight delay for better UX
+            clearTimeout(hoverTimeout);
+            hoverTimeout = setTimeout(() => {
+                if (shouldShowHover()) {
+                    // Your existing hover face animation code here
+                    // (keep your existing face animation logic)
+                }
+            }, 100);
         });
 
+        // Modified mouseleave event
         chatbotIcon.addEventListener('mouseleave', function () {
-            // Reset to main face
-            clearTimeout(expressionTimeout);
-            thinkingFace.style.opacity = '0';
-            listeningFace.style.opacity = '0';
-            mainFace.style.opacity = '1';
+            clearTimeout(hoverTimeout);
+            // Your existing mouseleave face animation code here
         });
 
         // Click to chat
@@ -280,19 +353,73 @@
             }, 100);
 
             // Open chat window (your implementation)
+            chatWindowOpen = true;
             openChatWindow();
         });
 
         // Random face blinking effect
         setInterval(() => {
-            if (!chatbotIcon.matches(':hover')) {
-                mainFace.style.opacity = '0.8';
-                setTimeout(() => {
-                    mainFace.style.opacity = '1';
-                }, 200);
+            if (!chatbotIcon.matches(':hover') && !isTyping) {
+                // Your existing blinking effect code here
             }
         }, 5000);
+
+        // Monitor screen resize to update hover behavior
+        window.addEventListener('resize', function () {
+            // If it's a small screen, ensure hover is disabled
+            if (isSmallScreen()) {
+                chatbotIcon.classList.remove('group');
+            } else if (!isTyping) {
+                chatbotIcon.classList.add('group');
+            }
+        });
+
+        // Initial check on load
+        if (isSmallScreen()) {
+            chatbotIcon.classList.remove('group');
+        }
+
+        // Add click event listener to chat window submit button
+        // This should be inside your openChatWindow function or chat window initialization
+        function setupChatWindowEvents() {
+            const chatWindow = document.querySelector('#chat-window, .chat-window, [data-chat-window]');
+            if (!chatWindow) return;
+
+            // Prevent submit button from affecting hover state
+            const submitButtons = chatWindow.querySelectorAll('button[type="submit"], .send-button, .submit-chat');
+            submitButtons.forEach(button => {
+                button.addEventListener('click', function (e) {
+                    // Don't let this click affect the hover state
+                    e.stopPropagation();
+                });
+            });
+
+            // Prevent form submission from affecting hover
+            const forms = chatWindow.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    // Don't let form submission affect hover
+                    e.stopPropagation();
+                });
+            });
+        }
+
+        // Override your openChatWindow function
+        const originalOpenChatWindow = window.openChatWindow || function () { };
+        window.openChatWindow = function () {
+            originalOpenChatWindow();
+            chatWindowOpen = true;
+            // Setup events after chat window is opened
+            setTimeout(setupChatWindowEvents, 100);
+        };
     });
+
+    // Your openChatWindow function (make sure it's defined)
+    function openChatWindow() {
+        // Your chat window opening logic here
+        console.log('Opening chat window...');
+        // Make sure to call setupChatWindowEvents after the chat window is created
+    }
 </script>
 
 
@@ -443,6 +570,12 @@
     </div>
 </div>
 
+<!-- Your chatbot container HTML remains the same -->
+<div class="fixed bottom-24 border border-2 border-light right-6 w-80 h-[500px] bg-white rounded-xl shadow-xl flex flex-col z-60 opacity-0 translate-y-5 pointer-events-none transition-all duration-300"
+    id="chatbot-container">
+    <!-- ... (keep your existing HTML) ... -->
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // DOM Elements
@@ -471,8 +604,11 @@
         let isMenuVisible = false;
         let isFormatVisible = false;
         let sessionId = generateSessionId();
-        //const API_BASE_URL = 'http://localhost:8007/api';
-        const API_BASE_URL = 'https://whitebox.go.ke/api/chatbot/'; 
+        const API_BASE_URL = 'https://whitebox.go.ke/api/chatbot/';
+
+        // Track if we're in the chat window
+        let isInChatWindow = false;
+
         // Generate a unique session ID
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -487,16 +623,28 @@
         // Toggle chat visibility
         function toggleChat() {
             isChatOpen = !isChatOpen;
+            isInChatWindow = isChatOpen; // Update tracking
             if (isChatOpen) {
                 chatbotContainer.classList.remove('opacity-0', 'translate-y-5', 'pointer-events-none');
                 chatbotContainer.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
                 messageInput.focus();
                 notificationBadge.classList.add('hidden');
+
+                // On large screens, make sure hover is disabled when chat is open
+                if (window.innerWidth >= 768) {
+                    chatbotIcon.classList.remove('group');
+                }
             } else {
                 chatbotContainer.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
                 chatbotContainer.classList.add('opacity-0', 'translate-y-5', 'pointer-events-none');
                 hideMenu();
                 hideFormatToolbar();
+                isInChatWindow = false;
+
+                // On large screens, re-enable hover when chat is closed
+                if (window.innerWidth >= 768) {
+                    chatbotIcon.classList.add('group');
+                }
             }
         }
 
@@ -841,43 +989,81 @@
             }
         }
 
-        // Event listeners
-        chatbotIcon.addEventListener('click', function () {
+        // Handle send message with proper event prevention
+        function handleSendMessage(e) {
+            // Prevent any default behavior that might close the chat
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
+
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessage(message, true);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                sendMessage(message);
+                hideFormatToolbar();
+            }
+
+            return false;
+        }
+
+        // Event listeners with proper prevention
+        chatbotIcon.addEventListener('click', function (e) {
+            e.stopPropagation();
             toggleChat();
         });
 
-        closeButton.addEventListener('click', function () {
+        closeButton.addEventListener('click', function (e) {
+            e.stopPropagation();
             toggleChat();
         });
 
-        minimizeButton.addEventListener('click', function () {
+        minimizeButton.addEventListener('click', function (e) {
+            e.stopPropagation();
             toggleChat();
         });
 
-        fullscreenButton.addEventListener('click', function () {
+        fullscreenButton.addEventListener('click', function (e) {
+            e.stopPropagation();
             toggleFullscreen();
         });
 
-        menuToggle.addEventListener('click', function () {
+        menuToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
             toggleMenu();
         });
 
-        formatToggle.addEventListener('click', function () {
+        formatToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
             toggleFormatToolbar();
         });
 
-        clearChatButton.addEventListener('click', function () {
+        clearChatButton.addEventListener('click', function (e) {
+            e.stopPropagation();
             clearChat();
         });
 
-        sendButton.addEventListener('click', handleSendMessage);
+        // Prevent send button from bubbling
+        sendButton.addEventListener('click', function (e) {
+            handleSendMessage(e);
+        });
 
+        // Prevent Enter key in textarea from bubbling
         messageInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                handleSendMessage();
+                e.stopPropagation();
+                handleSendMessage(e);
             }
         });
+
+        // Stop propagation for all clicks inside chat container
+        chatbotContainer.addEventListener('click', function (e) {
+            e.stopPropagation();
+        }, true); // Use capture phase
 
         // Auto-resize textarea
         messageInput.addEventListener('input', function () {
@@ -887,7 +1073,8 @@
 
         // Menu option handlers
         menuOptions.forEach(option => {
-            option.addEventListener('click', function () {
+            option.addEventListener('click', function (e) {
+                e.stopPropagation();
                 const query = this.getAttribute('data-query');
                 addMessage(query, true);
                 sendMessage(query);
@@ -897,32 +1084,59 @@
 
         // Format button handlers
         formatButtons.forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
                 const tag = this.getAttribute('data-tag');
                 applyFormatting(tag);
             });
         });
 
         // Emoji button (placeholder functionality)
-        emojiButton.addEventListener('click', function () {
+        emojiButton.addEventListener('click', function (e) {
+            e.stopPropagation();
             addMessage("😊 Emoji selection would appear here in a full implementation!", false);
         });
 
-        function handleSendMessage() {
-            const message = messageInput.value.trim();
-            if (message) {
-                addMessage(message, true);
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-                sendMessage(message);
-                hideFormatToolbar();
+        // Focus events to manage hover state
+        messageInput.addEventListener('focus', function () {
+            isInChatWindow = true;
+            // Disable hover effects on large screens when typing in chat
+            if (window.innerWidth >= 768) {
+                chatbotIcon.classList.remove('group');
             }
-        }
+        });
+
+        messageInput.addEventListener('blur', function () {
+            // Only re-enable hover if chat window is still open
+            if (isChatOpen && window.innerWidth >= 768) {
+                // Keep hover disabled while chat is open
+                chatbotIcon.classList.remove('group');
+            }
+        });
+
+        // Track window resize
+        window.addEventListener('resize', function () {
+            if (window.innerWidth < 768) {
+                // Always remove hover on small screens
+                chatbotIcon.classList.remove('group');
+            } else if (isChatOpen || isInChatWindow) {
+                // Keep hover disabled if chat is open on large screens
+                chatbotIcon.classList.remove('group');
+            } else {
+                // Re-enable hover on large screens when chat is closed
+                chatbotIcon.classList.add('group');
+            }
+        });
 
         // Initial API health check
         checkAPIHealth();
 
         // Periodically check API health (every 60 seconds)
         setInterval(checkAPIHealth, 60000);
+
+        // Initial hover state setup
+        if (window.innerWidth < 768) {
+            chatbotIcon.classList.remove('group');
+        }
     });
 </script>
